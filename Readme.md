@@ -22,21 +22,10 @@ I've trained those models using I7-7700K with one GTX 1060 and 28 Go of ram.
 
 Those are the categories trained to be segmented by the AI.
 
-<style>
-    .categories th:nth-child(1), .categories td:nth-child(1) {
-        text-align: center;
-        width: 50px
-    }
-    .categories th:nth-child(3), .categories td:nth-child(3) {
-        text-align: center;
-        width: 50px
-    }
-</style>
-
 <table class="categories">
     <thead>
         <tr>
-            <th>#</th>
+            <th style="width:50px">#</th>
             <th style="width:250px">Name</th>
             <th>Color</th>
         </tr>
