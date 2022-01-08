@@ -1,7 +1,7 @@
-models/
-pretrained/
-
+trained_models/
 wandb/
+
+.vscode
 
 *.npy
 *.h5

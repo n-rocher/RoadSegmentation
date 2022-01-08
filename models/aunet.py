@@ -1,4 +1,6 @@
 """
+Original code : https://github.com/bnsreenu/python_for_microscopists/blob/master/224_225_226_models.py
+
 Attention U-net:
 https://arxiv.org/pdf/1804.03999.pdf
 Recurrent residual Unet (R2U-Net) paper

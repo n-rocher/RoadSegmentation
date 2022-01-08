@@ -39,13 +39,13 @@ Those are the categories trained to be segmented by the AI.
         <tr><td>6</td><td>Traffic Light</td><td><img src="https://via.placeholder.com/70x35/faaa1e/000000?text=+"/></td></tr>
         <tr><td>7</td><td>Traffic Sign</td><td><img src="https://via.placeholder.com/70x35/ffff00/000000?text=+"/></td></tr>
         <tr><td>8</td><td>Person</td><td><img src="https://via.placeholder.com/70x35/ff0000/000000?text=+"/></td></tr>
-        <tr><td>9</td><td>Bicyclist</td><td><img src="https://via.placeholder.com/70x35/969664/000000?text=+"/></td></tr>
-        <tr><td>10</td><td>Motorcyclist</td><td><img src="https://via.placeholder.com/70x35/143264/000000?text=+"/></td></tr>
-        <tr><td>11</td><td>Bicycle</td><td><img src="https://via.placeholder.com/70x35/770b20/000000?text=+"/></td></tr>
-        <tr><td>12</td><td>Bus</td><td><img src="https://via.placeholder.com/70x35/ff0f93/000000?text=+"/></td></tr>
-        <tr><td>13</td><td>Car</td><td><img src="https://via.placeholder.com/70x35/00ff8e/000000?text=+"/></td></tr>
-        <tr><td>14</td><td>Motorcycle</td><td><img src="https://via.placeholder.com/70x35/0000e6/000000?text=+"/></td></tr>
-        <tr><td>15</td><td>Truck</td><td><img src="https://via.placeholder.com/70x35/4b0aaa/000000?text=+"/></td></tr>
+        <tr><td>9</td><td>Bicycle</td><td><img src="https://via.placeholder.com/70x35/770b20/000000?text=+"/></td></tr>
+        <tr><td>10</td><td>Bus</td><td><img src="https://via.placeholder.com/70x35/ff0f93/000000?text=+"/></td></tr>
+        <tr><td>11</td><td>Car</td><td><img src="https://via.placeholder.com/70x35/00ff8e/000000?text=+"/></td></tr>
+        <tr><td>12</td><td>Motorcycle</td><td><img src="https://via.placeholder.com/70x35/0000e6/000000?text=+"/></td></tr>
+        <tr><td>13</td><td>Truck</td><td><img src="https://via.placeholder.com/70x35/4b0aaa/000000?text=+"/></td></tr>
+        <tr><td>14</td><td>Sky</td><td><img src="https://via.placeholder.com/70x35/87ceff/000000?text=+"/></td></tr>
+        <tr><td>15</td><td>Nature</td><td><img src="https://via.placeholder.com/70x35/6b8e23/000000?text=+"/></td></tr>
     </tbody>
 </table>
 

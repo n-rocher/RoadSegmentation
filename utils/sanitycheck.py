@@ -3,7 +3,7 @@ import wandb
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow import keras, argmax
-from dataset import MultiDataset_FOR_DEV_USE_ONLY
+from utils.dataset import MultiDataset
 
 class SanityCheck(keras.callbacks.Callback):
 
@@ -15,7 +15,7 @@ class SanityCheck(keras.callbacks.Callback):
     def __init__(self, dataset, output="./", regulator=200, export_files=True, export_wandb=True):
         super(SanityCheck, self).__init__()
         self.dataset = dataset
-        self.data = self.dataset.__getitem__(8)
+        self.data = self.dataset.__getitem__(0)
         self.image_size = [self.data[0][0].shape[0], self.data[0][0].shape[1]]
         self.output = output
         self.regulator = regulator
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Génération du dataset
     print("\n> Génération du dataset")
-    data=MultiDataset_FOR_DEV_USE_ONLY(5, (480, 704), "val")
+    data=MultiDataset(5, (480, 704), "val")
 
     sc=SanityCheck(data, output = "TEST-sanity-check/")
     sc.DEBUG=True

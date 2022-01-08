@@ -16,16 +16,15 @@ MAPILLARY_VISTAS_CATEGORIES = {
     7: {"name": "Traffic Sign", "color": [[220, 220, 0]]},
 
     8: {"name": "Person", "color": [[220, 20, 60]]},
-    9: {"name": "Bicyclist", "color": [[255, 0, 0]]},
-    10: {"name": "Motorcyclist", "color": [[255, 0, 100]]},
 
-    11: {"name": "Bicycle", "color": [[119, 11, 32], [255, 0, 0]]},
-    12: {"name": "Bus", "color": [[0, 60, 100]]},
-    13: {"name": "Car", "color": [[0, 0, 142], [0, 0, 90], [0, 0, 110]]},
-    14: {"name": "Motorcycle", "color": [[0, 0, 230], [255, 0, 200]]},
-    15: {"name": "Truck", "color": [[0, 0, 70]]},
-    16: {"name": "Sky", "color": [[70, 130, 180]]},
-    17: {"name": "Nature", "color": [[107, 142, 35]]}
+    9: {"name": "Bicycle", "color": [[119, 11, 32], [255, 0, 0]]},
+    10: {"name": "Bus", "color": [[0, 60, 100]]},
+    11: {"name": "Car", "color": [[0, 0, 142], [0, 0, 90], [0, 0, 110]]},
+    12: {"name": "Motorcycle", "color": [[0, 0, 230], [255, 0, 200], [255, 0, 100]]},
+    13: {"name": "Truck", "color": [[0, 0, 70]]},
+    
+    14: {"name": "Sky", "color": [[70, 130, 180]]},
+    15: {"name": "Nature", "color": [[107, 142, 35], [152, 251, 152]]}
 }
 
 AUDI_A2D2_CATEGORIES = {
@@ -39,16 +38,15 @@ AUDI_A2D2_CATEGORIES = {
     7: {"name": "Traffic Sign", "color": [[0, 255, 255], [30, 220, 220], [60, 157, 199]]},
 
     8: {"name": "Person", "color": [[204, 153, 255], [189, 73, 155], [239, 89, 191]]},
-    9: {"name": "Bicyclist", "color": []},
-    10: {"name": "Motorcyclist", "color": []},
 
-    11: {"name": "Bicycle", "color": [[182, 89, 6], [150, 50, 4], [90, 30, 1], [90, 30, 30]]},
-    12: {"name": "Bus", "color": []},
-    13: {"name": "Car", "color": [[255, 0, 0], [200, 0, 0], [150, 0, 0], [128, 0, 0]]},
-    14: {"name": "Motorcycle", "color": [[0, 255, 0], [0, 200, 0], [0, 150, 0]]},
-    15: {"name": "Truck", "color": [[255, 128, 0], [200, 128, 0], [150, 128, 0], [255, 255, 0], [255, 255, 200]]},
-    16: {"name": "Sky", "color": [[135, 206, 255]]},
-    17: {"name": "Nature", "color": [[147, 253, 194]]}
+    9: {"name": "Bicycle", "color": [[182, 89, 6], [150, 50, 4], [90, 30, 1], [90, 30, 30]]},
+    10: {"name": "Bus", "color": []},
+    11: {"name": "Car", "color": [[255, 0, 0], [200, 0, 0], [150, 0, 0], [128, 0, 0]]},
+    12: {"name": "Motorcycle", "color": [[0, 255, 0], [0, 200, 0], [0, 150, 0]]},
+    13: {"name": "Truck", "color": [[255, 128, 0], [200, 128, 0], [150, 128, 0], [255, 255, 0], [255, 255, 200]]},
+
+    14: {"name": "Sky", "color": [[135, 206, 255]]},
+    15: {"name": "Nature", "color": [[147, 253, 194]]}
 }
 
 CATEGORIES_COLORS = {
@@ -62,16 +60,15 @@ CATEGORIES_COLORS = {
     7: {"name": "Traffic Sign", "color": [255, 255, 0]},
 
     8: {"name": "Person", "color": [255, 0, 0]},
-    9: {"name": "Bicyclist", "color": [150, 150, 100]},
-    10: {"name": "Motorcyclist", "color": [20, 50, 100]},
 
-    11: {"name": "Bicycle", "color": [119, 11, 32]},
-    12: {"name": "Bus", "color": [255, 15, 147]},
-    13: {"name": "Car", "color": [0, 255, 142]},
-    14: {"name": "Motorcycle", "color": [0, 0, 230]},
-    15: {"name": "Truck", "color": [75, 10, 170]},
-    16: {"name": "Sky", "color": [[135, 206, 255]]},
-    17: {"name": "Nature", "color": [[107, 142, 35]]}
+    9: {"name": "Bicycle", "color": [119, 11, 32]},
+    10: {"name": "Bus", "color": [255, 15, 147]},
+    11: {"name": "Car", "color": [0, 255, 142]},
+    12: {"name": "Motorcycle", "color": [0, 0, 230]},
+    13: {"name": "Truck", "color": [75, 10, 170]},
+
+    14: {"name": "Sky", "color": [[135, 206, 255]]},
+    15: {"name": "Nature", "color": [[107, 142, 35]]}
 }
 
 def getImagesAndMasksPath(images_path, masks_path):
@@ -245,16 +242,21 @@ class MultiDataset(keras.utils.Sequence):
 
     def __init__(self, batch_size, img_size, dataset_type):
 
-        dataset_type = "training" if dataset_type == "train" else ("validation" if dataset_type == "val" else dataset_type)
+        dataset_folder = "training" if dataset_type == "train" else ("validation" if dataset_type == "val" else ("testing" if dataset_type == "test" else dataset_type))
 
         self.batch_size = batch_size
         self.img_size = img_size
 
         # Chargement des données
-        self.vistas_dataset = self.getVistasData(dataset_type)
-        self.a2d2_dataset = self.getA2D2Data(dataset_type)
-        self.dataset = self.vistas_dataset + self.a2d2_dataset
-        random.shuffle(self.dataset)
+        if dataset_type == "test":
+            vistas_dataset = self.getVistasData(dataset_folder)
+            a2d2_dataset = self.getA2D2Data(dataset_folder)
+            self.dataset = vistas_dataset + a2d2_dataset
+        else:
+            vistas_dataset = self.getVistasData(dataset_folder)
+            a2d2_dataset = self.getA2D2Data(dataset_folder)
+            self.dataset = vistas_dataset + a2d2_dataset
+            random.shuffle(self.dataset)
 
         self.CATEGORIES = {
             "VISTAS": MAPILLARY_VISTAS_CATEGORIES,

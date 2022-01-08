@@ -4,36 +4,13 @@ import numpy as np
 
 from tensorflow import keras, argmax
 
-from model import ArgmaxMeanIOU
-
+from utils.argmaxMeanIOU import ArgmaxMeanIOU
+from utils.dataset import CATEGORIES_COLORS
 import sys
-import time
 
 from PySide6.QtCore import Qt, QThread, Signal, Slot
-from PySide6.QtGui import QAction, QImage, QPixmap
+from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (QApplication, QFileDialog, QComboBox, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
-
-
-CATEGORIES = {
-    1: {"name": "Road", "color": [75, 75, 75]},
-    2: {"name": "Lane", "color": [255, 255, 255]},
-    3: {"name": "Crosswalk", "color": [200, 128, 128]},
-    4: {"name": "Curb", "color": [150, 150, 150]},
-    5: {"name": "Sidewalk", "color": [244, 35, 232]},
-
-    6: {"name": "Traffic Light", "color": [250, 170, 30]},
-    7: {"name": "Traffic Sign", "color": [255, 255, 0]},
-
-    8: {"name": "Person", "color": [255, 0, 0]},
-    9: {"name": "Bicyclist", "color": [150, 150, 100]},
-    10: {"name": "Motorcyclist", "color": [20, 50, 100]},
-
-    11: {"name": "Bicycle", "color": [119, 11, 32]},
-    12: {"name": "Bus", "color": [255, 15, 147]},
-    13: {"name": "Car", "color": [0, 255, 142]},
-    14: {"name": "Motorcycle", "color": [0, 0, 230]},
-    15: {"name": "Truck", "color": [75, 10, 170]}
-}
 
 TRAFFIC_SIGN_DATASET = {
     1: "Virage à droite",
@@ -88,7 +65,8 @@ TRAFFIC_SIGN_DATASET = {
     85: "Direction - Tourner à droite",
     86: "Direction - Tourner à gauche",
     87: "Passer à droite",
-    88: "Passer à gauche"}
+    88: "Passer à gauche"
+}
 
 TRAFFIC_SIGN_DATASET_VALUES = list(TRAFFIC_SIGN_DATASET.values())
 TRAFFIC_SIGN_DATASET_KEYS = list(TRAFFIC_SIGN_DATASET.keys())
@@ -119,7 +97,7 @@ def copyTrafficSign(image, trafficSign, x, y):
     mask = trafficSign[0:t_h, 0:t_w, 3]
 
     # Récupération image
-    sous_parties_image = image[y:y+t_h, x:x+t_w, :]
+    sous_parties_image = image[y:y + t_h, x:x + t_w, :]
 
     # DEBUG: print(sous_parties_image.shape, mask.shape)
 
@@ -130,7 +108,7 @@ def copyTrafficSign(image, trafficSign, x, y):
 
     # Assemblage final
     final = cv2.bitwise_or(fg, bg)
-    image[y:y+t_h, x:x+t_w, :] = final
+    image[y:y + t_h, x:x + t_w, :] = final
 
     return image
 
@@ -193,7 +171,7 @@ class Thread(QThread):
 
     def run(self):
 
-        global CATEGORIES
+        global CATEGORIES_COLORS
 
         if self.video_file is not None:
 
@@ -220,7 +198,7 @@ class Thread(QThread):
                 # kernel = np.ones((3, 3), np.uint8)
                 # result = cv2.erode(np.array(result, dtype=np.uint8), kernel, iterations=3)
                 segmentation = np.zeros(result_segmentation.shape + (3,), dtype=np.uint8)
-                for categorie in CATEGORIES.keys():
+                for categorie in CATEGORIES_COLORS.keys():
 
                     # En cas de détection de "Traffic Sign", on dessine une box autour
                     if categorie == 7:
@@ -252,7 +230,7 @@ class Thread(QThread):
                                         except Exception as err:
                                             print(err)
 
-                    segmentation[result_segmentation == categorie] = CATEGORIES[categorie]["color"]
+                    segmentation[result_segmentation == categorie] = CATEGORIES_COLORS[categorie]["color"]
 
                 if self.segmentation_model_size != (640, 480):
                     img_resized = cv2.resize(img_resized, (640, 480), interpolation=cv2.INTER_AREA)
@@ -360,9 +338,9 @@ class Window(QMainWindow):
 
         grid = QGridLayout()
 
-        for id_label in CATEGORIES:
+        for id_label in CATEGORIES_COLORS:
 
-            label = CATEGORIES[id_label]
+            label = CATEGORIES_COLORS[id_label]
 
             color = "rgb(" + str(label["color"][0]) + "," + str(label["color"][1]) + "," + str(label["color"][2]) + ")"
 
@@ -490,15 +468,15 @@ if __name__ == "__main__":
 #             if DISPLAY_LAYER is not False:
 #                 for i in range(1, num_categories_out) if DISPLAY_LAYER == True else DISPLAY_LAYER:
 #                     layer = np.array(result[:, :, i] * 255., dtype=np.uint8)
-#                     cv2.imshow('Resultat ' + str(i) + '/' + str(num_categories_out) + " : " + CATEGORIES[i]["name"], cv2.applyColorMap(layer, cv2.COLORMAP_JET))
+#                     cv2.imshow('Resultat ' + str(i) + '/' + str(num_categories_out) + " : " + CATEGORIES_COLORS[i]["name"], cv2.applyColorMap(layer, cv2.COLORMAP_JET))
 
 #             # Argmax
 #             result = argmax(result, axis=-1)
 #             kernel = np.ones((3, 3), np.uint8)
 #             result = cv2.erode(np.array(result, dtype=np.uint8), kernel, iterations=1)
 #             test_r = np.zeros(result.shape + (3,), dtype=np.uint8)
-#             for categorie in CATEGORIES.keys():
-#                 test_r[result == categorie] = CATEGORIES[categorie]["color"]
+#             for categorie in CATEGORIES_COLORS.keys():
+#                 test_r[result == categorie] = CATEGORIES_COLORS[categorie]["color"]
 
 #             cv2.imshow('Segmentation :', cv2.resize(cv2.cvtColor(test_r, cv2.COLOR_RGB2BGR), IMG_SIZE, interpolation=cv2.INTER_AREA))
 

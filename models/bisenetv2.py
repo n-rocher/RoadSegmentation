@@ -191,13 +191,7 @@ def seg_head(x_in, c_t, out_scale, num_classes):
 
     return x
 
-
-class ArgmaxMeanIOU(metrics.MeanIoU):
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        return super().update_state(tf.argmax(y_true, axis=-1), tf.argmax(y_pred, axis=-1), sample_weight)
-
-
-def bisenetv2(num_classes=2, out_scale=8, input_shape=INPUT_SHAPE, l=4, seghead_expand_ratio=2):
+def BiSeNetV2(num_classes=2, out_scale=8, input_shape=INPUT_SHAPE, l=4, seghead_expand_ratio=2):
     x_in = layers.Input(input_shape)
 
     # semantic branch
@@ -306,7 +300,7 @@ def bisenetv2_DEEPER(num_classes=2, out_scale=8, input_shape=INPUT_SHAPE, l=4, s
 
     x = seg_head(x, num_classes * seghead_expand_ratio, out_scale, num_classes)
 
-    model = models.Model(inputs=[x_in], outputs=[x], name="BiSeNet-V2")
+    model = models.Model(inputs=[x_in], outputs=[x], name="BiSeNet-V2-Deeper")
 
     # set weight initializers
     for layer in model.layers:
@@ -314,16 +308,5 @@ def bisenetv2_DEEPER(num_classes=2, out_scale=8, input_shape=INPUT_SHAPE, l=4, s
             layer.kernel_initializer = tf.keras.initializers.HeNormal()
         if hasattr(layer, 'depthwise_initializer'):
             layer.depthwise_initializer = tf.keras.initializers.HeNormal()
-
-    return model
-
-
-def bisenetv2_compiled(model, num_classes, **kwargs):
-    
-    model = model(num_classes=num_classes, **kwargs)
-    optimizer = optimizers.Adam(learning_rate=1e-4)
-    cce = losses.CategoricalCrossentropy(from_logits=True)
-
-    model.compile(optimizer, loss=cce, metrics=['accuracy', ArgmaxMeanIOU(num_classes)])
 
     return model
