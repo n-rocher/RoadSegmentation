@@ -25,27 +25,27 @@ Those are the categories trained to be segmented by the AI.
 <table class="categories">
     <thead>
         <tr>
-            <th style="width:50px">#</th>
-            <th style="width:250px">Name</th>
+            <th>#</th>
+            <th>Name</th>
             <th>Color</th>
         </tr>
     </thead>
     <tbody>
-        <tr><td>1</td><td>Road</td><td style="background: #4b4b4b"></td></tr>
-        <tr><td>2</td><td>Lane</td><td style="background: #ffffff"></td></tr>
-        <tr><td>3</td><td>Crosswalk</td><td style="background: #c88080"></td></tr>
-        <tr><td>4</td><td>Curb</td><td style="background: #969696"></td></tr>
-        <tr><td>5</td><td>Sidewalk</td><td style="background: #f423e8"></td></tr>
-        <tr><td>6</td><td>Traffic Light</td><td style="background: #faaa1e"></td></tr>
-        <tr><td>7</td><td>Traffic Sign</td><td style="background: #ffff00"></td></tr>
-        <tr><td>8</td><td>Person</td><td style="background: #ff0000"></td></tr>
-        <tr><td>9</td><td>Bicyclist</td><td style="background: #969664"></td></tr>
-        <tr><td>10</td><td>Motorcyclist</td><td style="background: #143264"></td></tr>
-        <tr><td>11</td><td>Bicycle</td><td style="background: #770b20"></td></tr>
-        <tr><td>12</td><td>Bus</td><td style="background: #ff0f93"></td></tr>
-        <tr><td>13</td><td>Car</td><td style="background: #00ff8e"></td></tr>
-        <tr><td>14</td><td>Motorcycle</td><td style="background: #0000e6"></td></tr>
-        <tr><td>15</td><td>Truck</td><td style="background: #4b0aaa"></td></tr>
+        <tr><td>1</td><td>Road</td><td bgcolor="#4b4b4b"></td></tr>
+        <tr><td>2</td><td>Lane</td><td bgcolor="#ffffff"></td></tr>
+        <tr><td>3</td><td>Crosswalk</td><td bgcolor="#c88080"></td></tr>
+        <tr><td>4</td><td>Curb</td><td bgcolor="#969696"></td></tr>
+        <tr><td>5</td><td>Sidewalk</td><td bgcolor="#f423e8"></td></tr>
+        <tr><td>6</td><td>Traffic Light</td><td bgcolor="#faaa1e"></td></tr>
+        <tr><td>7</td><td>Traffic Sign</td><td bgcolor="#ffff00"></td></tr>
+        <tr><td>8</td><td>Person</td><td bgcolor="#ff0000"></td></tr>
+        <tr><td>9</td><td>Bicyclist</td><td bgcolor="#969664"></td></tr>
+        <tr><td>10</td><td>Motorcyclist</td><td bgcolor="#143264"></td></tr>
+        <tr><td>11</td><td>Bicycle</td><td bgcolor="#770b20"></td></tr>
+        <tr><td>12</td><td>Bus</td><td bgcolor="#ff0f93"></td></tr>
+        <tr><td>13</td><td>Car</td><td bgcolor="#00ff8e"></td></tr>
+        <tr><td>14</td><td>Motorcycle</td><td bgcolor="#0000e6"></td></tr>
+        <tr><td>15</td><td>Truck</td><td bgcolor="#4b0aaa"></td></tr>
     </tbody>
 </table>
 
