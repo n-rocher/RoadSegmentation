@@ -61,7 +61,7 @@ CATEGORIES_COLORS = {
 
     8: {"name": "Person", "color": [255, 0, 0]},
 
-    9: {"name": "Bicycle", "color": [119, 11, 32]},
+    9: {"name": "Bicycle", "color": [88, 41, 0]},
     10: {"name": "Bus", "color": [255, 15, 147]},
     11: {"name": "Car", "color": [0, 255, 142]},
     12: {"name": "Motorcycle", "color": [0, 0, 230]},
