@@ -4,10 +4,9 @@
 
 </p>
 
-# Road Image Segmentation
-
-The purpose of this project is to create a real-time capable AI to detect a few categories of object on the road.
-All images are segmented independantly.
+# Road Segmentation
+The goal of this project is to create an AI able to detect in real time some categories of objects on the road.
+All images are segmented independently.
 
 # Models
 I used those models to segment the video :
@@ -16,10 +15,9 @@ I used those models to segment the video :
 3. R2U-Net - [paper](https://arxiv.org/abs/1802.06955)
 4. Attention R2U-Net
 
-I've trained those models using I7-7700K with one GTX 1060 and 28 Go of ram.
+I trained those models using an I7-7700K with a 6GB GTX 1060 and 28GB of RAM.
 
 # Categories
-
 Those are the categories trained to be segmented by the AI.
 
 <table class="categories">
@@ -50,7 +48,7 @@ Those are the categories trained to be segmented by the AI.
 </table>
 
 # Datasets
-The AI has been trained using a mix of those two datasets :
+The AI was trained using a mix of those two datasets :
 1. [A2D2 of Audi](https://www.a2d2.audi/a2d2/en.html) 
 2. [Mapillary Vistas](https://www.mapillary.com/dataset/vistas)
 
