@@ -5,7 +5,7 @@
 </p>
 
 # Road Segmentation
-The goal of this project is to create an AI able to detect in real time some categories of objects on the road.
+The goal of this project is to create an AI able to segment in real time some categories of objects on the road.
 All images are segmented independently.
 
 # Models

@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
 
     # Creating model
-    print("\n> Creating modèle")
+    print("\n> Creating model")
     model = BiSeNetV2(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
 
     optimizer = optimizers.Adam(learning_rate=LR)
