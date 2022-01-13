@@ -10,10 +10,10 @@ All images are segmented independently.
 
 # Models
 I used those models to segment the video :
-1. BiSeNet V2 - [paper](https://arxiv.org/abs/2004.02147) [pretrained model](https://github.com/n-rocher/RoadSegmentation/)
+1. BiSeNet V2 - [paper](https://arxiv.org/abs/2004.02147) [pretrained model](https://github.com/n-rocher/RoadSegmentation/blob/main/models/BiSeNet-V2_MultiDataset_512-512_epoch-13_loss-0.23_miou_0.54.h5)
 2. Attention U-net - [paper](https://arxiv.org/abs/1802.06955)
 3. R2U-Net - [paper](https://arxiv.org/abs/1802.06955)
-4. Attention R2U-Net [pretrained model](https://github.com/n-rocher/RoadSegmentation/)
+4. Attention R2U-Net [pretrained model](https://github.com/n-rocher/RoadSegmentation/blob/main/models/AttentionResUNet-F16_MultiDataset_512-512_epoch-26_loss-0.21_miou_0.55.h5)
 
 I trained those models using an I7-7700K with a 6GB GTX 1060 and 28GB of RAM.
 
