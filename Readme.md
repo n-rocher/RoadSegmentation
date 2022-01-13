@@ -10,10 +10,10 @@ All images are segmented independently.
 
 # Models
 I used those models to segment the video :
-1. BiSeNet V2 - [paper](https://arxiv.org/abs/2004.02147)
+1. BiSeNet V2 - [paper](https://arxiv.org/abs/2004.02147) [pretrained model](https://github.com/n-rocher/RoadSegmentation/)
 2. Attention U-net - [paper](https://arxiv.org/abs/1802.06955)
 3. R2U-Net - [paper](https://arxiv.org/abs/1802.06955)
-4. Attention R2U-Net
+4. Attention R2U-Net [pretrained model](https://github.com/n-rocher/RoadSegmentation/)
 
 I trained those models using an I7-7700K with a 6GB GTX 1060 and 28GB of RAM.
 
@@ -24,7 +24,7 @@ Those are the categories trained to be segmented by the AI.
     <thead>
         <tr>
             <th>#</th>
-            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
             <th>Color</th>
         </tr>
     </thead>
