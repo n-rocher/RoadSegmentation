@@ -4,7 +4,7 @@ wandb/
 .vscode
 
 *.npy
-*.h5
+pretrained_models/*.h5
 
 model.tflite
 
