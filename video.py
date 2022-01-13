@@ -70,11 +70,11 @@ TRAFFIC_SIGN_DATASET = {
 
 TRAFFIC_SIGN_DATASET_VALUES = list(TRAFFIC_SIGN_DATASET.values())
 TRAFFIC_SIGN_DATASET_KEYS = list(TRAFFIC_SIGN_DATASET.keys())
-TRAFFIC_SIGN_DATASET_IMAGE_FOLDER = "J:/PROJET/IA/European Traffic Sign Dataset/data/logo/"
+TRAFFIC_SIGN_DATASET_IMAGE_FOLDER = "J:/PROJET/TRAFFIC_SIGN_RECOGNITION/data/logo/"
 TRAFFIC_SIGN_DATASET_IMAGE = list(map(lambda x: cv2.resize(cv2.imread(TRAFFIC_SIGN_DATASET_IMAGE_FOLDER + str(x) + ".png", cv2.IMREAD_UNCHANGED), (50, 50)), TRAFFIC_SIGN_DATASET_KEYS))
 
 IMG_SIZE = (720, 480)
-VIDEO_PATH = r"F:\Road Video\25-12-2021"
+VIDEO_PATH = r"F:\Road Video\Clip"
 
 BOUNDING_BOX_PADDING = 5
 
@@ -98,8 +98,6 @@ def copyTrafficSign(image, trafficSign, x, y):
 
     # Récupération image
     sous_parties_image = image[y:y + t_h, x:x + t_w, :]
-
-    # DEBUG: print(sous_parties_image.shape, mask.shape)
 
     # Ajout des masques
 
@@ -191,7 +189,7 @@ class Thread(QThread):
 
                 img_resized = cv2.resize(frame, self.segmentation_model_size, interpolation=cv2.INTER_AREA)
 
-                result_segmentation = self.segmentation_model.predict(np.expand_dims(img_resized / 255., axis=0))[0]
+                result_segmentation = self.segmentation_model.predict(np.expand_dims(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR) / 255., axis=0))[0]
 
                 # Argmax
                 result_segmentation = argmax(result_segmentation, axis=-1)
@@ -233,10 +231,10 @@ class Thread(QThread):
                     segmentation[result_segmentation == categorie] = CATEGORIES_COLORS[categorie]["color"]
 
                 if self.segmentation_model_size != (640, 480):
-                    img_resized = cv2.resize(img_resized, (640, 480), interpolation=cv2.INTER_AREA)
+                    img_resized = cv2.resize(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR), (640, 480), interpolation=cv2.INTER_AREA)
                     segmentation = cv2.resize(segmentation, (640, 480), interpolation=cv2.INTER_AREA)
 
-                self.sendTo(self.EVT_ROAD_IMAGE, cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR))
+                self.sendTo(self.EVT_ROAD_IMAGE, img_resized)
                 self.sendTo(self.EVT_SEGMENTATION_IMAGE, segmentation)
 
             self.cap.release()
@@ -341,7 +339,6 @@ class Window(QMainWindow):
         for id_label in CATEGORIES_COLORS:
 
             label = CATEGORIES_COLORS[id_label]
-
             color = "rgb(" + str(label["color"][0]) + "," + str(label["color"][1]) + "," + str(label["color"][2]) + ")"
 
             testWidget = QFrame()

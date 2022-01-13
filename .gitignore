@@ -6,6 +6,13 @@ wandb/
 *.npy
 *.h5
 
+model.tflite
+
+
+exportgif/*
+
+*.npz
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

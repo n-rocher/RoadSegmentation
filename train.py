@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     # Creating model
     print("\n> Creating model")
-    model = BiSeNetV2(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
+    model = Attention_ResUNet(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
 
     optimizer = optimizers.Adam(learning_rate=LR)
     cce = losses.CategoricalCrossentropy(from_logits=True)

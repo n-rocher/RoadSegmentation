@@ -5,6 +5,11 @@ import numpy as np
 from tensorflow import keras
 from tensorflow.keras.preprocessing.image import load_img
 
+# Building
+# Mapillary : 70, 70, 70
+# A2D2 : 241, 230, 255
+
+
 MAPILLARY_VISTAS_CATEGORIES = {
     1: {"name": "Road", "color": [[128, 64, 128], [110, 110, 110]]},
     2: {"name": "Lane", "color": [[255, 255, 255], [250, 170, 29], [250, 170, 28], [250, 170, 26], [250, 170, 16], [250, 170, 15], [250, 170, 11], [250, 170, 12], [250, 170, 18], [250, 170, 19], [250, 170, 25], [250, 170, 20], [250, 170, 21], [250, 170, 22], [250, 170, 24]]},
@@ -67,8 +72,8 @@ CATEGORIES_COLORS = {
     12: {"name": "Motorcycle", "color": [0, 0, 230]},
     13: {"name": "Truck", "color": [75, 10, 170]},
 
-    14: {"name": "Sky", "color": [[135, 206, 255]]},
-    15: {"name": "Nature", "color": [[107, 142, 35]]}
+    14: {"name": "Sky", "color": [135, 206, 255]},
+    15: {"name": "Nature", "color": [107, 142, 35]}
 }
 
 def getImagesAndMasksPath(images_path, masks_path):
