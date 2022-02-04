@@ -40,7 +40,7 @@ To train a model, you first need to download the A2D2 and Mappillary Vistas data
 Then, install required packages : 
 > pip install -r requirements.txt
 
-After that, you might need to change some constant (dataset folders, epoches, lr, WanDB, ...) in the file `train.py` : 
+After that, you might need to change some constant (dataset folders, epochs, lr, WanDB, ...) in the file `train.py` : 
 > code train.py
 
 Finally, start the learning : 
