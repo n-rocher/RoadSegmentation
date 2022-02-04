@@ -21,13 +21,18 @@ BATCH_SIZE = 4
 EPOCHS = 30
 LR = 1e-4
 
+MODEL_USED = Attention_ResUNet
+
+A2D2_FOLDER = r"F:\\A2D2 Camera Semantic\\"
+VISTAS_FOLDER = r"F:\\Mapillary Vistas\\"
+
 if __name__ == '__main__':
 
     # Generating datasets
     print("\n> Generating datasets")
-    train_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "train")
-    val_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "val")
-    test_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "test")
+    train_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "train", A2D2_FOLDER, VISTAS_FOLDER)
+    val_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "val", A2D2_FOLDER, VISTAS_FOLDER)
+    test_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "test", A2D2_FOLDER, VISTAS_FOLDER)
 
     print("    Training :", len(train_gen), "batchs -", len(train_gen) * BATCH_SIZE, "images")
     print("    Validation :", len(val_gen), "batchs -", len(val_gen) * BATCH_SIZE, "images")
@@ -36,13 +41,13 @@ if __name__ == '__main__':
 
     # Creating model
     print("\n> Creating model")
-    model = Attention_ResUNet(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
+    model = MODEL_USED(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
 
     optimizer = optimizers.Adam(learning_rate=LR)
     cce = losses.CategoricalCrossentropy(from_logits=True)
 
     model.compile(optimizer, loss=cce, metrics=['accuracy', ArgmaxMeanIOU(train_gen.classes())])
-    # model.summary()
+    model.summary()
 
 
 

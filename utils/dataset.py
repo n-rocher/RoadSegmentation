@@ -89,13 +89,15 @@ def getImagesAndMasksPath(images_path, masks_path):
 
 class MapillaryVistasDataset(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, dataset_type):
+    def __init__(self, batch_size, img_size, dataset_type, dataset_folder):
 
         dataset_type = "training" if dataset_type == "train" else ("validation" if dataset_type == "val" else dataset_type)
 
+        # self.dataset_folder = r"F:\\Mapillary Vistas\\"
+        self.dataset_folder = dataset_folder
         self.batch_size = batch_size
         self.img_size = img_size
-        self.input_img_paths, self.target_img_paths = getImagesAndMasksPath("F:\\Mapillary Vistas\\" + dataset_type + "\\images\\", "F:\\Mapillary Vistas\\" + dataset_type + "\\v1.2\labels\\")
+        self.input_img_paths, self.target_img_paths = getImagesAndMasksPath(self.dataset_folder + dataset_type + "\\images\\", self.dataset_folder + dataset_type + "\\v1.2\labels\\")
 
         self.CATEGORIES = MAPILLARY_VISTAS_CATEGORIES
 
@@ -157,9 +159,10 @@ class MapillaryVistasDataset(keras.utils.Sequence):
 
 class A2D2Dataset(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size):
+    def __init__(self, batch_size, img_size, dataset_folder):
 
-        self.dataset_folder = r"F:\\A2D2 Camera Semantic\\"
+        # self.dataset_folder = r"F:\\A2D2 Camera Semantic\\"
+        self.dataset_folder = dataset_folder
         self.batch_size = batch_size
         self.img_size = img_size
         self.input_img_paths, self.target_img_paths = self.getData()
@@ -245,9 +248,12 @@ class A2D2Dataset(keras.utils.Sequence):
 
 class MultiDataset(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, dataset_type):
+    def __init__(self, batch_size, img_size, dataset_type, A2D2_dataset_folder, VISTAS_dataset_folder):
 
         dataset_folder = "training" if dataset_type == "train" else ("validation" if dataset_type == "val" else ("testing" if dataset_type == "test" else dataset_type))
+
+        self.A2D2_dataset_folder = A2D2_dataset_folder
+        self.VISTAS_dataset_folder = VISTAS_dataset_folder
 
         self.batch_size = batch_size
         self.img_size = img_size
@@ -287,11 +293,11 @@ class MultiDataset(keras.utils.Sequence):
         return "MultiDataset"
 
     def getVistasData(self, dataset_type):
-        data_image, data_label = getImagesAndMasksPath("F:\\Mapillary Vistas\\" + dataset_type + "\\images\\", "F:\\Mapillary Vistas\\" + dataset_type + "\\v1.2\labels\\")
+        data_image, data_label = getImagesAndMasksPath(self.VISTAS_dataset_folder + dataset_type + "\\images\\", self.VISTAS_dataset_folder + dataset_type + "\\v1.2\labels\\")
         return list(zip(["VISTAS"] * len(data_image), data_image, data_label))
 
     def getA2D2Data(self, dataset_type):
-        dataset_folder = r"F:\\A2D2 Camera Semantic\\" + dataset_type + "\\"
+        dataset_folder = self.A2D2_dataset_folder + dataset_type + "\\"
 
         data_image = []
         data_label = []

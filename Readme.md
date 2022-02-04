@@ -16,8 +16,36 @@ I used those models to segment the video :
 2. Attention R2U-Net - [pretrained model](https://github.com/n-rocher/RoadSegmentation/blob/main/models/AttentionResUNet-F16_MultiDataset_512-512_epoch-26_loss-0.21_miou_0.55.h5)<br/>
     Result : Mean Intersection Over Union = 55% Loss = 0.21
 
+I trained each of these models for about 48 hours with an I7-7700K, a 6GB GTX 1060 and 28GB of RAM.
 
-I trained those models using an I7-7700K with a 6GB GTX 1060 and 28GB of RAM.
+
+# Usage
+
+## Testing Segmentation
+
+To test the models on a video, you can use the UI.
+
+First, install required packages : 
+> pip install -r requirements.txt
+
+Then, start the UI :
+> python segmentation.py [Video Folder Path]
+
+![Ui for testing](image/ui.png)
+
+## Training
+
+To train a model, you first need to download the A2D2 and Mappillary Vistas dataset.
+
+Then, install required packages : 
+> pip install -r requirements.txt
+
+After that, you might need to change some constant (dataset folders, epoches, lr, WanDB, ...) in the file `train.py` : 
+> code train.py
+
+Finally, start the learning : 
+> python train.py
+
 
 # Categories
 Those are the categories trained to be segmented by the AI.
