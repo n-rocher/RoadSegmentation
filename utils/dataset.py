@@ -29,7 +29,8 @@ MAPILLARY_VISTAS_CATEGORIES = {
     13: {"name": "Truck", "color": [[0, 0, 70]]},
     
     14: {"name": "Sky", "color": [[70, 130, 180]]},
-    15: {"name": "Nature", "color": [[107, 142, 35], [152, 251, 152]]}
+    15: {"name": "Nature", "color": [[107, 142, 35], [152, 251, 152]]},
+    16: {"name": "Building", "color": [[70, 70, 70]]}
 }
 
 AUDI_A2D2_CATEGORIES = {
@@ -51,7 +52,8 @@ AUDI_A2D2_CATEGORIES = {
     13: {"name": "Truck", "color": [[255, 128, 0], [200, 128, 0], [150, 128, 0], [255, 255, 0], [255, 255, 200]]},
 
     14: {"name": "Sky", "color": [[135, 206, 255]]},
-    15: {"name": "Nature", "color": [[147, 253, 194]]}
+    15: {"name": "Nature", "color": [[147, 253, 194]]},
+    16: {"name": "Building", "color": [[241, 230, 255]]}
 }
 
 CATEGORIES_COLORS = {
@@ -73,7 +75,8 @@ CATEGORIES_COLORS = {
     13: {"name": "Truck", "color": [75, 10, 170]},
 
     14: {"name": "Sky", "color": [135, 206, 255]},
-    15: {"name": "Nature", "color": [107, 142, 35]}
+    15: {"name": "Nature", "color": [107, 142, 35]},
+    16: {"name": "Building", "color": [241, 230, 255]}
 }
 
 def getImagesAndMasksPath(images_path, masks_path):

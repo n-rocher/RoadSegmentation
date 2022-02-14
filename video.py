@@ -1,16 +1,17 @@
-import cv2
 import os
+import cv2
+import sys
+import time
 import numpy as np
 
 from tensorflow import keras, argmax
 
 from utils.argmaxMeanIOU import ArgmaxMeanIOU
 from utils.dataset import CATEGORIES_COLORS
-import sys
 
 from PySide6.QtCore import Qt, QThread, Signal, Slot
 from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtWidgets import (QApplication, QFileDialog, QComboBox, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QFileDialog, QComboBox, QFrame, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPushButton, QScrollArea, QCheckBox, QSizePolicy, QVBoxLayout, QWidget)
 
 TRAFFIC_SIGN_DATASET = {
     1: "Virage à droite",
@@ -74,10 +75,10 @@ TRAFFIC_SIGN_DATASET_IMAGE_FOLDER = "J:/PROJET/TRAFFIC_SIGN_RECOGNITION/data/log
 TRAFFIC_SIGN_DATASET_IMAGE = list(map(lambda x: cv2.resize(cv2.imread(TRAFFIC_SIGN_DATASET_IMAGE_FOLDER + str(x) + ".png", cv2.IMREAD_UNCHANGED), (50, 50)), TRAFFIC_SIGN_DATASET_KEYS))
 
 IMG_SIZE = (720, 480)
-VIDEO_PATH = r"F:\Road Video\Clip"
+VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
 
 BOUNDING_BOX_PADDING = 5
-
+TIME_PERSISTANT = 5
 
 def copyTrafficSign(image, trafficSign, x, y):
 
@@ -114,6 +115,7 @@ def copyTrafficSign(image, trafficSign, x, y):
 class Thread(QThread):
     EVT_ROAD_IMAGE = Signal(QImage)
     EVT_SEGMENTATION_IMAGE = Signal(QImage)
+    EVT_FPS = Signal(int)
 
     segmentation_model = None
     segmentation_model_size = None
@@ -121,12 +123,23 @@ class Thread(QThread):
     traffic_sign_recognition_model = None
     traffic_sign_recognition_model_size = None
 
+    options = {
+        "showRoad": True,
+        "showObjects": True,
+        "showBackground": True,
+        "useTimeConsistency": True,
+        "showRectArroundTrafficSign": False
+    }
+
     def __init__(self, parent=None):
         QThread.__init__(self, parent)
         self.video_file = None
         self.status = True
         self.cap = None
         self.isAvailable = True
+
+        self.categories_color = np.array([[0, 0, 0]] + [obj["color"] for obj in CATEGORIES_COLORS.values()], dtype=np.uint8)
+
 
     def start_file(self, fname):
         self.video_file = os.path.join(VIDEO_PATH, fname)
@@ -144,6 +157,18 @@ class Thread(QThread):
 
         # Emit signal
         evt.emit(scaled_img)
+
+    def changeOptions(self, name, checked):
+        print(name, self.options[name], "-->", checked)
+        self.options[name] = checked
+
+        if name in ["showRoad", "showObjects", "showBackground"]:
+            values = CATEGORIES_COLORS.values()
+            self.categories_color = np.zeros((len(values) + 1, 3), dtype=np.uint8)
+            for o, data in enumerate(values):
+                i = o + 1
+                if (i >= 1 and i <= 5 and self.options["showRoad"]) or (i >= 6 and i <= 13 and self.options["showObjects"]) or (i >= 14 and self.options["showBackground"]):
+                    self.categories_color[i] = data["color"]
 
     def loadSegmentationModel(self, filename):
         self.segmentation_model = None
@@ -180,62 +205,83 @@ class Thread(QThread):
 
             self.cap = cv2.VideoCapture(self.video_file)
 
+            previous_frame = np.zeros((TIME_PERSISTANT, ) + self.segmentation_model.layers[-1].output_shape[1:])
+
+            prev_frame_time = 0
+            new_frame_time = 0
+
             while(self.ThreadActive and self.cap.isOpened()):
+
                 self.isAvailable = False
 
                 ret, frame = self.cap.read()
+                new_frame_time = time.time()
+
                 if not ret:
                     continue
 
                 img_resized = cv2.resize(frame, self.segmentation_model_size, interpolation=cv2.INTER_AREA)
 
                 result_segmentation = self.segmentation_model.predict(np.expand_dims(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR) / 255., axis=0))[0]
+                result_segmentation_with_temp = result_segmentation
+
+                if self.options["useTimeConsistency"]:
+                    result_segmentation_with_temp = result_segmentation + previous_frame[0] + 0.5 * np.sum(previous_frame[:1])
 
                 # Argmax
-                result_segmentation = argmax(result_segmentation, axis=-1)
-                # kernel = np.ones((3, 3), np.uint8)
-                # result = cv2.erode(np.array(result, dtype=np.uint8), kernel, iterations=3)
-                segmentation = np.zeros(result_segmentation.shape + (3,), dtype=np.uint8)
-                for categorie in CATEGORIES_COLORS.keys():
+                argmax_result_segmentation = argmax(result_segmentation_with_temp, axis=-1)
 
-                    # En cas de détection de "Traffic Sign", on dessine une box autour
-                    if categorie == 7:
-                        contours, _ = cv2.findContours(np.array(result_segmentation == categorie, dtype=np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-                        for cnt in contours:
-                            x, y, w, h = cv2.boundingRect(cnt)
-                            if w > 10 and h > 10 and w * h > 200:
-                                x = x - BOUNDING_BOX_PADDING
-                                y = y - BOUNDING_BOX_PADDING
-                                w = w + BOUNDING_BOX_PADDING * 2
-                                h = h + BOUNDING_BOX_PADDING * 2
+                # Index --> Couleur
+                argmax_result_segmentation = np.expand_dims(argmax_result_segmentation, axis=-1)
+                segmentation = np.squeeze(np.take(self.categories_color, argmax_result_segmentation, axis=0))
 
-                                x = x if x >= 0 else 0
-                                y = y if y >= 0 else 0
-                                w = w if w <= self.segmentation_model_size[0] else self.segmentation_model_size[0]
-                                h = h if h <= self.segmentation_model_size[1] else self.segmentation_model_size[1]
+                # En cas de détection de "Traffic Sign", on dessine une box autour
+                if self.options["showRectArroundTrafficSign"]:
+                    contours, _ = cv2.findContours(np.array(argmax_result_segmentation == 7, dtype=np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                    for cnt in contours:
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        if w > 10 and h > 10 and w * h > 200:
+                            x = x - BOUNDING_BOX_PADDING
+                            y = y - BOUNDING_BOX_PADDING
+                            w = w + BOUNDING_BOX_PADDING * 2
+                            h = h + BOUNDING_BOX_PADDING * 2
 
-                                cv2.rectangle(segmentation, (x, y), (x + w, y + h), (0, 255, 0), 1)
+                            x = x if x >= 0 else 0
+                            y = y if y >= 0 else 0
+                            w = w if w <= self.segmentation_model_size[0] else self.segmentation_model_size[0]
+                            h = h if h <= self.segmentation_model_size[1] else self.segmentation_model_size[1]
 
-                                if self.traffic_sign_recognition_model is not None:
-                                    test_sign = cv2.resize(img_resized[y:y + h, x:x + w], self.traffic_sign_recognition_model_size, interpolation=cv2.INTER_AREA)
-                                    test_sign = np.array([test_sign / 255.])
-                                    result_traffic = self.traffic_sign_recognition_model.predict(test_sign)[0]
-                                    max_index_col = np.argmax(result_traffic, axis=0)
-                                    proba = result_traffic[max_index_col]
-                                    if proba > 0.85:
-                                        try:
-                                            img_resized = copyTrafficSign(img_resized, TRAFFIC_SIGN_DATASET_IMAGE[max_index_col], x, y)
-                                        except Exception as err:
-                                            print(err)
+                            cv2.rectangle(segmentation, (x, y), (x + w, y + h), (0, 255, 0), 1)
 
-                    segmentation[result_segmentation == categorie] = CATEGORIES_COLORS[categorie]["color"]
+                            if self.traffic_sign_recognition_model is not None:
+                                test_sign = cv2.resize(img_resized[y:y + h, x:x + w], self.traffic_sign_recognition_model_size, interpolation=cv2.INTER_AREA)
+                                test_sign = np.array([test_sign / 255.])
+                                result_traffic = self.traffic_sign_recognition_model.predict(test_sign)[0]
+                                max_index_col = np.argmax(result_traffic, axis=0)
+                                proba = result_traffic[max_index_col]
+                                if proba > 0.85:
+                                    try:
+                                        img_resized = copyTrafficSign(img_resized, TRAFFIC_SIGN_DATASET_IMAGE[max_index_col], x, y)
+                                    except Exception as err:
+                                        print(err)
 
+                # On redimenssione les résultats pour les afficher correctement
                 if self.segmentation_model_size != (640, 480):
                     img_resized = cv2.resize(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR), (640, 480), interpolation=cv2.INTER_AREA)
                     segmentation = cv2.resize(segmentation, (640, 480), interpolation=cv2.INTER_AREA)
 
+                # On tourne les résulats précédents et on sauvegarde le resultat
+                previous_frame = np.roll(previous_frame, 1)
+                previous_frame[0] = result_segmentation
+
+                # On calcule le temps nécéssaire
+                fps = 1 // (new_frame_time - prev_frame_time)
+                prev_frame_time = new_frame_time
+
+                # On envoie les données
                 self.sendTo(self.EVT_ROAD_IMAGE, img_resized)
                 self.sendTo(self.EVT_SEGMENTATION_IMAGE, segmentation)
+                self.EVT_FPS.emit(fps)
 
             self.cap.release()
             self.isAvailable = True
@@ -254,6 +300,7 @@ class Window(QMainWindow):
         self.thread = Thread(self)
         self.thread.EVT_ROAD_IMAGE.connect(self.setRoadImage)
         self.thread.EVT_SEGMENTATION_IMAGE.connect(self.setSegmentationImage)
+        self.thread.EVT_FPS.connect(self.setFPS)
 
         # MODEL CHOOSER LAYOUT
         self.model_chooser_layout = QGroupBox("Model chooser")
@@ -286,6 +333,9 @@ class Window(QMainWindow):
         # IMAGE RESULT
         self.video_layout_model = QGroupBox("Result")
         self.video_layout_model.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+
+        result_layout = QVBoxLayout()
+
         image_layout = QHBoxLayout()
         self.image_seg = QLabel(self)
         self.image_road = QLabel(self)
@@ -293,41 +343,6 @@ class Window(QMainWindow):
         self.image_road.setFixedSize(640, 480)
         image_layout.addWidget(self.image_road)
         image_layout.addWidget(self.image_seg)
-        self.video_layout_model.setLayout(image_layout)
-
-        # VIDEO FILE CHOOSER
-        self.group_model = QGroupBox("Video file")
-        self.group_model.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        model_layout = QHBoxLayout()
-        self.combobox = QComboBox()
-        for video_filename in os.listdir(VIDEO_PATH):
-            self.combobox.addItem(video_filename)
-
-        model_layout.addWidget(QLabel("Video :"), 10)
-        model_layout.addWidget(self.combobox, 75)
-        self.group_model.setLayout(model_layout)
-
-        # BUTTONS
-        buttons_layout = QHBoxLayout()
-        self.start_button = QPushButton("Start")
-        self.stop_button = QPushButton("Stop")
-        self.start_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        self.stop_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        buttons_layout.addWidget(self.stop_button)
-        buttons_layout.addWidget(self.start_button)
-
-        control_layout = QHBoxLayout()
-        control_layout.addWidget(self.group_model, 1)
-        control_layout.addLayout(buttons_layout, 1)
-
-        # Main layout
-        main_layout = QHBoxLayout()
-        layout = QVBoxLayout()
-        layout.addWidget(self.model_chooser_layout)
-        layout.addLayout(control_layout)
-        layout.addWidget(self.video_layout_model)
-
-        main_layout.addLayout(layout)
 
         # LABELS
         label_scroll = QScrollArea()
@@ -354,7 +369,68 @@ class Window(QMainWindow):
         label_scroll.setWidget(label_widget)
         label_scroll.setFixedWidth(200)
 
-        main_layout.addWidget(label_scroll)
+        image_layout.addWidget(label_scroll)
+        result_layout.addLayout(image_layout)
+
+        # Showing FPS
+        self.fps_label = QLabel("FPS :")
+        result_layout.addWidget(self.fps_label)
+
+        self.video_layout_model.setLayout(result_layout)
+
+        # VIDEO FILE CHOOSER
+        self.group_model = QGroupBox("Video file")
+        self.group_model.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        model_layout = QHBoxLayout()
+        self.combobox = QComboBox()
+        for video_filename in os.listdir(VIDEO_PATH):
+            self.combobox.addItem(video_filename)
+
+        model_layout.addWidget(QLabel("Video :"), 10)
+        model_layout.addWidget(self.combobox, 75)
+        self.group_model.setLayout(model_layout)
+
+        # BUTTONS
+        buttons_layout = QHBoxLayout()
+        self.start_button = QPushButton("Start")
+        self.stop_button = QPushButton("Stop")
+        self.start_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.stop_button.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        buttons_layout.addWidget(self.stop_button)
+        buttons_layout.addWidget(self.start_button)
+
+        control_layout = QHBoxLayout()
+        control_layout.addWidget(self.group_model, 1)
+        control_layout.addLayout(buttons_layout, 1)
+
+        # OPTIONS
+        option_layout = QGroupBox("Options")
+        option_layout.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        option_layout_in = QHBoxLayout()
+
+        self.showRoad = QCheckBox("Show road")
+        self.showRoad.setChecked(True)
+        self.showObjects = QCheckBox("Show objects")
+        self.showObjects.setChecked(True)
+        self.showBackground = QCheckBox("Show background")
+        self.showBackground.setChecked(True)
+        self.useTimeConsistency = QCheckBox("Time consistent result")
+        self.useTimeConsistency.setChecked(True)
+        self.showRectArroundTrafficSign = QCheckBox("Show traffic signs")
+
+        option_layout_in.addWidget(self.showRoad)
+        option_layout_in.addWidget(self.showObjects)
+        option_layout_in.addWidget(self.showBackground)
+        option_layout_in.addWidget(self.useTimeConsistency)
+        option_layout_in.addWidget(self.showRectArroundTrafficSign)
+        option_layout.setLayout(option_layout_in)
+
+        # Main layout
+        main_layout = QVBoxLayout()
+        main_layout.addWidget(self.model_chooser_layout)
+        main_layout.addLayout(control_layout)
+        main_layout.addWidget(option_layout)
+        main_layout.addWidget(self.video_layout_model)
 
         # Central widget
         widget = QWidget(self)
@@ -370,6 +446,12 @@ class Window(QMainWindow):
         self.segmentation_model_chooser_button.clicked.connect(self.segmentation_loadModel_Button)
         self.traffic_sign_model_chooser_input.returnPressed.connect(self.traffic_sign_loadModel_Input)
         self.traffic_sign_model_chooser_button.clicked.connect(self.traffic_sign_loadModel_Button)
+
+        self.showRoad.clicked.connect(self.showRoad_LISTENER)
+        self.showObjects.clicked.connect(self.showObjects_LISTENER)
+        self.showBackground.clicked.connect(self.showBackground_LISTENER)
+        self.useTimeConsistency.clicked.connect(self.useTimeConsistency_LISTENER)
+        self.showRectArroundTrafficSign.clicked.connect(self.showRectArroundTrafficSign_LISTENER)
 
     @Slot()
     def set_video(self, filename):
@@ -400,6 +482,10 @@ class Window(QMainWindow):
     def setSegmentationImage(self, image):
         self.image_seg.setPixmap(QPixmap.fromImage(image))
 
+    @Slot(int)
+    def setFPS(self, fps):
+        self.fps_label.setText("FPS : " + str(fps))
+
     def segmentation_loadModel_Input(self):
         fileName = self.segmentation_model_chooser_input.text()
         self.thread.loadSegmentationModel(fileName)
@@ -418,6 +504,20 @@ class Window(QMainWindow):
         self.traffic_sign_model_chooser_input.setText(fileName[0])
         self.thread.loadTrafficSignRecognitionModel(fileName[0])
 
+    def showRoad_LISTENER(self, checked):
+        self.thread.changeOptions("showRoad", checked)
+
+    def showObjects_LISTENER(self, checked):
+        self.thread.changeOptions("showObjects", checked)
+
+    def showBackground_LISTENER(self, checked):
+        self.thread.changeOptions("showBackground", checked)
+
+    def useTimeConsistency_LISTENER(self, checked):
+        self.thread.changeOptions("useTimeConsistency", checked)
+
+    def showRectArroundTrafficSign_LISTENER(self, checked):
+        self.thread.changeOptions("showRectArroundTrafficSign", checked)
 
 def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)

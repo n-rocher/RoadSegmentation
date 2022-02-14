@@ -16,9 +16,9 @@ import tensorflow.keras.optimizers as optimizers
 
 USE_WANDB = True
 
-IMG_SIZE = (512, 512)
-BATCH_SIZE = 4
-EPOCHS = 30
+IMG_SIZE = (384, 384)
+BATCH_SIZE = 7
+EPOCHS = 35
 LR = 1e-4
 
 MODEL_USED = Attention_ResUNet
