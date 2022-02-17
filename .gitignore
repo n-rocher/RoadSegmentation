@@ -8,6 +8,8 @@ pretrained_models/*.h5
 
 model.tflite
 
+optimized_models/
+optimized_logdir/
 
 exportgif/*
 

@@ -341,6 +341,13 @@ class Window(QMainWindow):
         self.image_road = QLabel(self)
         self.image_seg.setFixedSize(640, 480)
         self.image_road.setFixedSize(640, 480)
+
+        self.image_seg.setObjectName("image_seg")
+        self.image_seg.setStyleSheet("#image_seg {background-color: black;}")
+
+        self.image_road.setObjectName("image_road")
+        self.image_road.setStyleSheet("#image_road {background-color: black;}")
+
         image_layout.addWidget(self.image_road)
         image_layout.addWidget(self.image_seg)
 

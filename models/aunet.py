@@ -234,7 +234,76 @@ def Attention_ResUNet(num_classes, input_shape=(480, 480), dropout_rate=0.0, bat
 
 
 
+def Attention_ResUNet_LIGHTER(num_classes, input_shape=(480, 480), dropout_rate=0.0, batch_norm=True):
+    '''
+    Residual UNet, with attention 
+    '''
+    # network structure
+    FILTER_NUM = 16  # number of basic filters for the first layer
+    FILTER_SIZE = 3 # size of the convolutional filter
+    UP_SAMP_SIZE = 2  # size of upsampling filters
+ 
+    # input data
+    # dimension of the image depth
+    inputs = layers.Input(input_shape, dtype=tf.float32)
+    axis = 3
+
+    # Downsampling layers
+    conv_128 = res_conv_block(inputs, FILTER_SIZE, FILTER_NUM, dropout_rate, batch_norm)
+    pool_64 = layers.MaxPooling2D(pool_size=(2, 2))(conv_128)
+
+    # DownRes 2
+    conv_64 = res_conv_block(pool_64, FILTER_SIZE, 2 * FILTER_NUM, dropout_rate, batch_norm)
+    pool_32 = layers.MaxPooling2D(pool_size=(2, 2))(conv_64)
+    
+    # DownRes 3
+    conv_32 = res_conv_block(pool_32, FILTER_SIZE, 4 * FILTER_NUM, dropout_rate, batch_norm)
+    pool_16 = layers.MaxPooling2D(pool_size=(2, 2))(conv_32)
+    
+    # DownRes 4, convolution only
+    conv_16 = res_conv_block(pool_16, FILTER_SIZE, 8 * FILTER_NUM, dropout_rate, batch_norm)
+    
+    # pool_8 = layers.MaxPooling2D(pool_size=(2, 2))(conv_16)
+    # DownRes 5, convolution only
+    # conv_8 = res_conv_block(pool_8, FILTER_SIZE, 16 * FILTER_NUM, dropout_rate, batch_norm)
+
+    # Upsampling layers
+    # UpRes 6, attention gated concatenation + upsampling + double residual convolution
+    # gating_16 = gating_signal(conv_16, 8 * FILTER_NUM, batch_norm)
+    # att_16 = attention_block(conv_16, gating_16, 8 * FILTER_NUM)
+    # up_16 = layers.UpSampling2D(size=(UP_SAMP_SIZE, UP_SAMP_SIZE), data_format="channels_last")(conv_16)
+    # up_16 = layers.concatenate([up_16, att_16], axis=axis)
+    # up_conv_16 = res_conv_block(up_16, FILTER_SIZE, 8 * FILTER_NUM, dropout_rate, batch_norm)
+    # UpRes 7
+    gating_32 = gating_signal(conv_16, 4 * FILTER_NUM, batch_norm)
+    att_32 = attention_block(conv_32, gating_32, 4 * FILTER_NUM)
+    up_32 = layers.UpSampling2D(size=(UP_SAMP_SIZE, UP_SAMP_SIZE), data_format="channels_last")(conv_16)
+    up_32 = layers.concatenate([up_32, att_32], axis=axis)
+    up_conv_32 = res_conv_block(up_32, FILTER_SIZE, 4 * FILTER_NUM, dropout_rate, batch_norm)
+    # UpRes 8
+    gating_64 = gating_signal(up_conv_32, 2 * FILTER_NUM, batch_norm)
+    att_64 = attention_block(conv_64, gating_64, 2 * FILTER_NUM)
+    up_64 = layers.UpSampling2D(size=(UP_SAMP_SIZE, UP_SAMP_SIZE), data_format="channels_last")(up_conv_32)
+    up_64 = layers.concatenate([up_64, att_64], axis=axis)
+    up_conv_64 = res_conv_block(up_64, FILTER_SIZE, 2 * FILTER_NUM, dropout_rate, batch_norm)
+    # UpRes 9
+    gating_128 = gating_signal(up_conv_64, FILTER_NUM, batch_norm)
+    att_128 = attention_block(conv_128, gating_128, FILTER_NUM)
+    up_128 = layers.UpSampling2D(size=(UP_SAMP_SIZE, UP_SAMP_SIZE), data_format="channels_last")(up_conv_64)
+    up_128 = layers.concatenate([up_128, att_128], axis=axis)
+    up_conv_128 = res_conv_block(up_128, FILTER_SIZE, FILTER_NUM, dropout_rate, batch_norm)
+
+    # 1*1 convolutional layers
+    conv_final = layers.Conv2D(filters=num_classes, kernel_size=(7, 7), padding='same')(up_conv_128)
+    conv_final = layers.Activation('softmax')(conv_final)
+
+    # Model integration
+    model = models.Model(inputs, conv_final, name="AttentionResUNet-F" + str(FILTER_NUM) + "-LIGHT")
+    return model
+
+
+
 
 if __name__ == "__main__":
-    unet = Attention_ResUNet((480, 480), num_classes=13)
+    unet = Attention_ResUNet_LIGHTER(19, input_shape=(384, 384, 3))
     unet.summary()

@@ -4,11 +4,11 @@ import random
 import numpy as np
 from tensorflow import keras
 from tensorflow.keras.preprocessing.image import load_img
+import glob
 
 # Building
 # Mapillary : 70, 70, 70
 # A2D2 : 241, 230, 255
-
 
 MAPILLARY_VISTAS_CATEGORIES = {
     1: {"name": "Road", "color": [[128, 64, 128], [110, 110, 110]]},
@@ -27,7 +27,7 @@ MAPILLARY_VISTAS_CATEGORIES = {
     11: {"name": "Car", "color": [[0, 0, 142], [0, 0, 90], [0, 0, 110]]},
     12: {"name": "Motorcycle", "color": [[0, 0, 230], [255, 0, 200], [255, 0, 100]]},
     13: {"name": "Truck", "color": [[0, 0, 70]]},
-    
+
     14: {"name": "Sky", "color": [[70, 130, 180]]},
     15: {"name": "Nature", "color": [[107, 142, 35], [152, 251, 152]]},
     16: {"name": "Building", "color": [[70, 70, 70]]}
@@ -123,7 +123,7 @@ class MapillaryVistasDataset(keras.utils.Sequence):
         # Chargement de la photo de la route
         x = np.zeros((self.batch_size,) + self.img_size + (3,), dtype="float32")
         for j, path in enumerate(batch_input_img_paths):
-            frame = np.array(load_img(path, target_size=self.img_size))
+            frame = cv2.cvtColor(np.array(load_img(path, target_size=self.img_size)), cv2.COLOR_BGR2RGB)
             x[j] = frame / 255.
 
         # Chargement du masque et traitement
@@ -374,13 +374,111 @@ class MultiDataset(keras.utils.Sequence):
 
         return x, y
 
+class NPZDataset(keras.utils.Sequence):
+
+    def __init__(self, filename, batch_size):
+        self.file_name = filename
+        self.batch_size = batch_size
+
+        data = np.load(filename)
+
+        self.data_image = data["data_image"]
+        self.data_mask = data["data_mask"]
+
+    def classes(self):
+        return self.data_mask[0].shape[-1]
+
+    def labels(self):
+        l = {0: "Background"}
+        for i, label in enumerate(map(lambda x: AUDI_A2D2_CATEGORIES[x]["name"], AUDI_A2D2_CATEGORIES), start=1):
+            l[i] = label
+        return l
+
+    def name(self):
+        return "NPZDataset-" + self.file_name
+
+    def __len__(self):
+        return (len(self.data_image) - (len(self.data_image) % self.batch_size)) // self.batch_size
+
+    def __getitem__(self, batch_id):
+
+        index = batch_id * self.batch_size
+
+        x = self.data_image[index: (index + self.batch_size)]
+        y = self.data_mask[index: (index + self.batch_size)]
+
+        return x, y
+
+class NPZMultiFileDataset(keras.utils.Sequence):
+
+    def __init__(self, filename, batch_size):
+
+        self.files_name = self.get_files(filename)
+        self.data_file = None
+        self.open_file_id = None
+        self.batch_size = batch_size
+
+        self.total_size = 0
+        self.file_size = 0
+
+
+    def get_files(self, dataset_name):
+        data = list(sorted(glob.glob(dataset_name + '*.npz')))
+
+        self.file_size = int(data[0].split("_")[3].split("-")[0])
+
+        size = 0
+
+        for name in data:
+            size += int(name.split("_")[3].split("-")[0])
+
+        self.total_size = size
+
+        return data
+
+    def classes(self):
+        return self.data_mask[0].shape[-1]
+
+    def labels(self):
+        l = {0: "Background"}
+        for i, label in enumerate(map(lambda x: AUDI_A2D2_CATEGORIES[x]["name"], AUDI_A2D2_CATEGORIES), start=1):
+            l[i] = label
+        return l
+
+    def name(self):
+        return "NPZMultiFileDataset-" + self.file_name
+
+    def __len__(self):
+        return (self.total_size - (self.total_size % self.batch_size)) // self.batch_size
+
+    def __getitem__(self, batch_id):
+
+        index_file = batch_id // self.file_size
+        batch_number = batch_id % self.file_size
+
+        index = batch_number * self.batch_size
+
+        if self.open_file_id != index_file:
+            print("---", batch_id, "-> Changing the dataset file")
+            self.open_file_id = index_file
+            self.data_file = np.load(self.files_name[index_file])
+
+        x = self.data_file.data_image[index: (index + self.batch_size)]
+        y = self.data_file.data_mask[index: (index + self.batch_size)]
+        
+        return x, y
+
+
+
+
+
 
 if __name__ == "__main__":
 
-    img_size = (480, 720)
+    img_size = (384, 384)
+    DATASET_FILE = "DATASET_TRAIN_MapillaryVistasDataset_384-384_CAT-17.npz"
 
-    print("\n> Génération du dataset")
-    train_gen = MultiDataset(2, img_size, "train")
+    train_gen = NPZDataset(DATASET_FILE, 10)
 
     import matplotlib.pyplot as plt
     import tensorflow as tf
