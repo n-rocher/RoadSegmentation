@@ -463,7 +463,7 @@ class NPZMultiFileDataset(keras.utils.Sequence):
             self.open_file_id = index_file
             self.data_file = np.load(self.files_name[index_file])
 
-        x = self.data_file.data_image[index: (index + self.batch_size)]
+        x = self.data_file.data_image[index: (index + self.batch_size)] / 255.
         y = self.data_file.data_mask[index: (index + self.batch_size)]
         
         return x, y
