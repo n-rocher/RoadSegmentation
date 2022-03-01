@@ -7,18 +7,12 @@ import numpy as np
 from tensorflow import keras, argmax
 
 from utils.argmaxMeanIOU import ArgmaxMeanIOU
-from utils.dataset import CATEGORIES_COLORS
+from utils.dataset_drivable import CATEGORIES_COLORS
 import matplotlib.pyplot as plt
 
 IMG_SIZE = (720, 480)
 VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
-MODEL_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\20220223-000527\AttentionResUNet-WITH-SOFTMAX_MultiDataset_384-384_epoch-35_loss-0.21_miou_0.52.h5"
-
-OPTIONS = {
-    "showRoad": True,
-    "showObjects": True,
-    "showBackground": True,
-}
+MODEL_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\20220226-010120\AttentionResUNet-FOR-LANE_BDD100K-Drivable_384-384_epoch-13_loss-0.11_miou_0.77.h5"
 
 if __name__ == "__main__":
 
@@ -26,8 +20,7 @@ if __name__ == "__main__":
     categories_color = np.zeros((len(values) + 1, 3), dtype=np.uint8)
     for o, data in enumerate(values):
         i = o + 1
-        if (i >= 1 and i <= 5 and OPTIONS["showRoad"]) or (i >= 6 and i <= 13 and OPTIONS["showObjects"]) or (i >= 14 and OPTIONS["showBackground"]):
-            categories_color[i] = data["color"]
+        categories_color[i] = data["color"]
 
     for video_filename in os.listdir(VIDEO_PATH):
 
@@ -52,18 +45,16 @@ if __name__ == "__main__":
             img_resized = cv2.resize(frame, segmentation_model_size, interpolation=cv2.INTER_AREA)
 
             result_segmentation = segmentation_model.predict(np.expand_dims(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR) / 255., axis=0))[0]
-            # result_segmentation[result_segmentation < 0.8] = 0
-
-            result_segmentation_with_temp = result_segmentation
+            result_segmentation[result_segmentation < 0.8] = 0
 
             # Argmax
-            argmax_result_segmentation = argmax(result_segmentation_with_temp, axis=-1)
+            argmax_result_segmentation = argmax(result_segmentation, axis=-1)
 
-            # Index --> Couleur 
+            # Index --> Couleur
             argmax_result_segmentation = np.expand_dims(argmax_result_segmentation, axis=-1)
             segmentation = np.squeeze(np.take(categories_color, argmax_result_segmentation, axis=0))
-           
-            segmentation = cv2.bilateralFilter(segmentation, 10, 75, 75)
+
+            # segmentation = cv2.bilateralFilter(segmentation, 10, 75, 75)
 
             # On redimenssione les résultats pour les afficher correctement
             if segmentation_model_size != (640, 480):
@@ -77,6 +68,9 @@ if __name__ == "__main__":
             # On envoie les données
             cv2.imshow("ROAD_IMAGE", img_resized)
             cv2.imshow("SEGMENTATION_IMAGE", cv2.cvtColor(segmentation, cv2.COLOR_RGB2BGR))
+
+            overlay_segmentation = cv2.addWeighted(img_resized, 0.8, cv2.cvtColor(segmentation, cv2.COLOR_RGB2BGR), 0.9, 0)
+            cv2.imshow("OVERLAY", overlay_segmentation)
 
             print(fps)
 

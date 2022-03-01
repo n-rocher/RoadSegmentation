@@ -124,6 +124,7 @@ class Thread(QThread):
     traffic_sign_recognition_model_size = None
 
     options = {
+        "blurImage": False,
         "showRoad": True,
         "showObjects": True,
         "showBackground": True,
@@ -139,7 +140,6 @@ class Thread(QThread):
         self.isAvailable = True
 
         self.categories_color = np.array([[0, 0, 0]] + [obj["color"] for obj in CATEGORIES_COLORS.values()], dtype=np.uint8)
-
 
     def start_file(self, fname):
         self.video_file = os.path.join(VIDEO_PATH, fname)
@@ -221,6 +221,11 @@ class Thread(QThread):
                     continue
 
                 img_resized = cv2.resize(frame, self.segmentation_model_size, interpolation=cv2.INTER_AREA)
+
+                if self.options["blurImage"]:
+                    # img_resized = cv2.GaussianBlur(img_resized,(5,5),0)
+                    # img_resized = cv2.medianBlur(img_resized, 5)
+                    img_resized = cv2.bilateralFilter(img_resized, 2, 75, 75)
 
                 result_segmentation = self.segmentation_model.predict(np.expand_dims(cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR) / 255., axis=0))[0]
                 result_segmentation_with_temp = result_segmentation
@@ -415,6 +420,7 @@ class Window(QMainWindow):
         option_layout.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         option_layout_in = QHBoxLayout()
 
+        self.blurImage = QCheckBox("Blur the frame")
         self.showRoad = QCheckBox("Show road")
         self.showRoad.setChecked(True)
         self.showObjects = QCheckBox("Show objects")
@@ -425,6 +431,7 @@ class Window(QMainWindow):
         self.useTimeConsistency.setChecked(True)
         self.showRectArroundTrafficSign = QCheckBox("Show traffic signs")
 
+        option_layout_in.addWidget(self.blurImage)
         option_layout_in.addWidget(self.showRoad)
         option_layout_in.addWidget(self.showObjects)
         option_layout_in.addWidget(self.showBackground)
@@ -454,6 +461,7 @@ class Window(QMainWindow):
         self.traffic_sign_model_chooser_input.returnPressed.connect(self.traffic_sign_loadModel_Input)
         self.traffic_sign_model_chooser_button.clicked.connect(self.traffic_sign_loadModel_Button)
 
+        self.blurImage.clicked.connect(self.blurImage_LISTENER)
         self.showRoad.clicked.connect(self.showRoad_LISTENER)
         self.showObjects.clicked.connect(self.showObjects_LISTENER)
         self.showBackground.clicked.connect(self.showBackground_LISTENER)
@@ -510,6 +518,9 @@ class Window(QMainWindow):
         fileName = QFileDialog.getOpenFileName(self, "Load model savepoint", "", "H5 file (*.h5)")
         self.traffic_sign_model_chooser_input.setText(fileName[0])
         self.thread.loadTrafficSignRecognitionModel(fileName[0])
+
+    def blurImage_LISTENER(self, checked):
+        self.thread.changeOptions("blurImage", checked)
 
     def showRoad_LISTENER(self, checked):
         self.thread.changeOptions("showRoad", checked)

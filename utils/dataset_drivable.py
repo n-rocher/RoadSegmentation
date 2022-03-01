@@ -3,6 +3,10 @@ from tensorflow import keras
 import numpy as np
 from tensorflow.keras.preprocessing.image import load_img
 
+CATEGORIES_COLORS = {
+    1: {"name": "Current Lane", "color": [255, 0, 0]},
+    2: {"name": "Other Lane", "color": [100, 100, 0]}
+}
 
 class DrivableAreaDataset(keras.utils.Sequence):
     """Helper to iterate over the data (as Numpy arrays)."""
@@ -23,10 +27,7 @@ class DrivableAreaDataset(keras.utils.Sequence):
         return 3
 
     def colors(self):
-        return {
-            1: {"name": "Current Lane", "color": [250, 170, 30]},
-            2: {"name": "Other Lane", "color": [200, 128, 128]}
-        }
+        return CATEGORIES_COLORS
 
     def labels(self):
         first_cat = list(self.colors().keys())[0]
@@ -57,7 +58,10 @@ class DrivableAreaDataset(keras.utils.Sequence):
 
         y = np.moveaxis(y, 1, -1)
 
-        return x, y
+        z = np.zeros((self.batch_size,) + (17,) + self.img_size)
+        z = np.moveaxis(z, 1, -1)
+
+        return x, [y, z] #FIXME: Remove Z and the array
 
 
 def getImagesAndMasksPath(images_path, masks_path):

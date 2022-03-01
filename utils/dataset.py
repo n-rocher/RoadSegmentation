@@ -157,8 +157,10 @@ class MapillaryVistasDataset(keras.utils.Sequence):
             y[j, 0] = instance == 0
 
         y = np.moveaxis(y, 1, -1)
+        z = np.zeros((self.batch_size,) + (3,) + self.img_size)
+        z = np.moveaxis(z, 1, -1)
 
-        return x, y
+        return x, [z, y] #FIXMe: To remove Z
 
 class A2D2Dataset(keras.utils.Sequence):
 
@@ -413,7 +415,6 @@ class NPZMultiFileDataset(keras.utils.Sequence):
 
     def __init__(self, filename, batch_size):
 
-        self.files_name = self.get_files(filename)
         self.data_file = None
         self.open_file_id = None
         self.batch_size = batch_size
@@ -421,6 +422,7 @@ class NPZMultiFileDataset(keras.utils.Sequence):
         self.total_size = 0
         self.file_size = 0
 
+        self.files_name = self.get_files(filename)
 
     def get_files(self, dataset_name):
         data = list(sorted(glob.glob(dataset_name + '*.npz')))
@@ -446,7 +448,7 @@ class NPZMultiFileDataset(keras.utils.Sequence):
         return l
 
     def name(self):
-        return "NPZMultiFileDataset-" + self.file_name
+        return "NPZMultiFileDataset-" + self.files_name[0]
 
     def __len__(self):
         return (self.total_size - (self.total_size % self.batch_size)) // self.batch_size
@@ -463,14 +465,10 @@ class NPZMultiFileDataset(keras.utils.Sequence):
             self.open_file_id = index_file
             self.data_file = np.load(self.files_name[index_file])
 
-        x = self.data_file.data_image[index: (index + self.batch_size)] / 255.
-        y = self.data_file.data_mask[index: (index + self.batch_size)]
-        
+        x = self.data_file["data_image"][index: (index + self.batch_size)] / 255.
+        y = self.data_file["data_mask"][index: (index + self.batch_size)]
+
         return x, y
-
-
-
-
 
 
 if __name__ == "__main__":

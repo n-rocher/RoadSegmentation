@@ -1,6 +1,9 @@
 trained_models/
 wandb/
 
+video-output/
+video-output/*
+
 .vscode
 
 *.npy

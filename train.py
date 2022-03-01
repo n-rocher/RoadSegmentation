@@ -2,7 +2,7 @@ import wandb
 from tensorflow import keras
 from wandb.keras import WandbCallback
 
-from utils.dataset import MultiDataset, MapillaryVistasDataset, NPZDataset
+from utils.dataset import MultiDataset, MapillaryVistasDataset, NPZDataset, NPZMultiFileDataset
 
 from models.ddrnet_23_slim import DDRNet_23_Slim
 from models.bisenetv2 import BiSeNetV2
@@ -18,20 +18,23 @@ import tensorflow.keras.optimizers as optimizers
 USE_WANDB = True
 
 IMG_SIZE = (384, 384)
-BATCH_SIZE = 5
-EPOCHS = 35
-LR = 0.045
+BATCH_SIZE = 8
+EPOCHS = 200
+LR = 0.0001
 
 MODEL_USED = Attention_ResUNet
 
 A2D2_FOLDER = r"F:\\A2D2 Camera Semantic\\"
 VISTAS_FOLDER = r"F:\\Mapillary Vistas\\"
 
+# MODEL_FILE = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-F16_MultiDataset_384-384_epoch-04_loss-0.27_miou_0.53.h5"
+
 if __name__ == '__main__':
 
     # Generating datasets
     print("\n> Generating datasets")
     train_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "train", A2D2_FOLDER, VISTAS_FOLDER)
+    # train_gen = NPZMultiFileDataset("./DATASET_MultiDataset_train_1000-384-384_CAT-17_", BATCH_SIZE)
     val_gen = MultiDataset(BATCH_SIZE, IMG_SIZE, "val", A2D2_FOLDER, VISTAS_FOLDER)
 
     # train_gen = NPZDataset("DATASET_TRAIN_MapillaryVistasDataset_384-384_CAT-17.npz", BATCH_SIZE)
@@ -43,22 +46,21 @@ if __name__ == '__main__':
     print("    Validation :", len(val_gen), "batchs -", len(val_gen) * BATCH_SIZE, "images")
 
 
-
     # Creating model
     print("\n> Creating model")
-    # model = MODEL_USED(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
- 
-    MODEL_FILE = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-F16_MultiDataset_384-384_epoch-35_loss-0.28_miou_0.54.h5"
-    model = keras.models.load_model(MODEL_FILE, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
+    model = MODEL_USED(num_classes=train_gen.classes(), input_shape=IMG_SIZE + (3,))
+    # model.load_weights(MODEL_FILE)
+
+    # model = keras.models.load_model(MODEL_FILE, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
 
 
-    # optimizer = optimizers.Adam(learning_rate=LR)
+    optimizer = optimizers.Adam(learning_rate=LR)
     # cce = losses.CategoricalCrossentropy(from_logits=False) # WITH SOFTMAX
 
     # optimizer = optimizers.SGD(momentum=0.9, lr=LR)
-    # cce = losses.CategoricalCrossentropy(from_logits=True) # NO SOFTMAX
+    cce = losses.CategoricalCrossentropy(from_logits=True) # NO SOFTMAX
 
-    # model.compile(optimizer, loss=cce, metrics=['accuracy', ArgmaxMeanIOU(train_gen.classes())])
+    model.compile(optimizer, loss=cce, metrics=['accuracy', ArgmaxMeanIOU(train_gen.classes())])
     model.summary()
 
 
@@ -89,8 +91,8 @@ if __name__ == '__main__':
         train_gen,
         epochs=EPOCHS,
         validation_data=val_gen,
-        # use_multiprocessing=True,
-        # workers=6,
+        use_multiprocessing=True,
+        workers=6,
         callbacks=callbacks
     )
 

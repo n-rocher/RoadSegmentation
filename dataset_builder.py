@@ -44,7 +44,7 @@ if __name__ == '__main__':
                 print("")
                 print("saving the file")
                 print(data_image.shape, data_mask.shape)
-                filename = "DATASET_" + dataset.name() + "_" + dataset_type + "_" + str(data_image.shape[0]) + "-" + str(IMG_SIZE[0]) + "-" + str(IMG_SIZE[1]) + "_CAT-" + str(dataset.classes()) + "_" + str(id % 10)
+                filename = "DATASET_" + dataset.name() + "_" + dataset_type + "_" + str(data_image.shape[0]) + "-" + str(IMG_SIZE[0]) + "-" + str(IMG_SIZE[1]) + "_CAT-" + str(dataset.classes()) + "_" + str(id // 10)
                 np.savez_compressed(filename, data_image=data_image, data_mask=data_mask)
                 print("file saved :", filename)
                 data_image = None
