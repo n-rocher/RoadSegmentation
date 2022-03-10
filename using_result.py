@@ -13,7 +13,7 @@ from models.aunet import Attention_ResUNet
 
 IMG_SIZE = (720, 480)
 VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
-OBJECT_SEGMENTATION_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-F16_MultiDataset_384-384_epoch-35_loss-0.28_miou_0.54.h5"
+OBJECT_SEGMENTATION_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-WITH-SOFTMAX_MultiDataset_384-384_epoch-35_loss-0.21_miou_0.52.h5"
 LANE_SEGMENTATION_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-softmax-FOR-LANE_BDD100K-Drivable_384-384_epoch-18_loss-0.11_miou_0.77.h5"
 
 OPTIONS = {
@@ -86,6 +86,9 @@ if __name__ == "__main__":
             lane_segmentation = cv2.morphologyEx(lane_segmentation, cv2.MORPH_CLOSE, np.ones((20, 20), np.uint8))
 
             # Argmax
+
+            result_segmentation_objects[result_segmentation_objects < 0.6] = 0
+
             result_segmentation_objects = argmax(result_segmentation_objects, axis=-1)
             # result_segmentation_lane = argmax(result_segmentation_lane, axis=-1)
 

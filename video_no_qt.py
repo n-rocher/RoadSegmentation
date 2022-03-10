@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 IMG_SIZE = (720, 480)
 VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
-MODEL_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\20220223-000527\AttentionResUNet-WITH-SOFTMAX_MultiDataset_384-384_epoch-35_loss-0.21_miou_0.52.h5"
+MODEL_PATH = r"J:\PROJET\ROAD_SEGMENTATION\trained_models\AttentionResUNet-WITH-SOFTMAX_MultiDataset_384-384_epoch-35_loss-0.21_miou_0.52.h5"
 
 OPTIONS = {
     "showRoad": True,
@@ -29,12 +29,12 @@ if __name__ == "__main__":
         if (i >= 1 and i <= 5 and OPTIONS["showRoad"]) or (i >= 6 and i <= 13 and OPTIONS["showObjects"]) or (i >= 14 and OPTIONS["showBackground"]):
             categories_color[i] = data["color"]
 
+    segmentation_model = keras.models.load_model(MODEL_PATH, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
+    segmentation_model_size = segmentation_model.get_layer(index=0).input_shape[0][1:-1][::-1]
+
     for video_filename in os.listdir(VIDEO_PATH):
 
         filename = os.path.join(VIDEO_PATH, video_filename)
-
-        segmentation_model = keras.models.load_model(MODEL_PATH, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
-        segmentation_model_size = segmentation_model.get_layer(index=0).input_shape[0][1:-1][::-1]
 
         cap = cv2.VideoCapture(filename)
 

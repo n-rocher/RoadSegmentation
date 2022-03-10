@@ -3,7 +3,7 @@ import cv2
 import random
 import numpy as np
 from tensorflow import keras
-from tensorflow.keras.preprocessing.image import load_img
+from keras.preprocessing.image import load_img
 import glob
 
 # Building

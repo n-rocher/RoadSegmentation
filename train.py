@@ -6,7 +6,7 @@ from utils.dataset import MultiDataset, MapillaryVistasDataset, NPZDataset, NPZM
 
 from models.ddrnet_23_slim import DDRNet_23_Slim
 from models.bisenetv2 import BiSeNetV2
-from models.aunet import Attention_ResUNet, Attention_ResUNet_LIGHTER
+from models.aunet import Attention_ResUNet
 
 from datetime import datetime
 from utils.sanitycheck import SanityCheck

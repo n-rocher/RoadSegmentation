@@ -5,27 +5,8 @@ import tensorflow as tf
 
 tf.keras.backend.set_image_data_format('channels_first')
 
-KEY_CHANNELS = 64 #, 128 # 256
-VALUE_CHANNELS = 256 # 512 # 1024
-
-# SI ON VEUT PARTAGER LES WEIGHTS DU KEYS ET MEMORIES
-# memory_keys_conv1 = layers.Conv2D(KEY_CHANNELS, (1, 1), padding="same", activation="relu", name="memory_keys_conv1")
-# memory_keys_conv2 = layers.Conv2D(KEY_CHANNELS, (3, 3), padding="same", activation="relu", name="memory_keys_conv2")
-
-# memory_keys = layers.TimeDistributed(memory_keys_conv1)(sequence_imgs)
-# memory_keys = layers.TimeDistributed(memory_keys_conv2)(memory_keys)
-
-# memory_values_conv1 = layers.Conv2D(VALUE_CHANNELS, (1, 1), padding="same", activation="relu", name="memory_values_conv1")
-# memory_values_conv2 = layers.Conv2D(VALUE_CHANNELS, (3, 3), padding="same", activation="relu", name="memory_values_conv2")
-
-# memory_values = layers.TimeDistributed(memory_values_conv1)(sequence_imgs)
-# memory_values = layers.TimeDistributed(memory_values_conv2)(memory_values)
-
-# query_key = memory_keys_conv1(x)
-# query_key = memory_keys_conv2(query_key)
-
-# query_value = memory_values_conv1(x)
-# query_value = memory_values_conv2(query_value)
+KEY_CHANNELS = 64  # , 128 # 256
+VALUE_CHANNELS = 256  # 512 # 1024
 
 def memory_module(memory_keys, memory_values, query_key, query_value):
 
@@ -56,59 +37,169 @@ def memory_module(memory_keys, memory_values, query_key, query_value):
 
     return query_memory
 
-def TMA_HEAD(image, sequence_imgs, n_output):
-
-    # print("image.shape", image.shape)
-    # print("sequence_imgs.shape", sequence_imgs.shape)
+def TMA_HEAD(image, sequence_imgs, n_output, upsampling=False):
 
     padding = "same"
 
-    memory_keys = layers.TimeDistributed(layers.Conv2D(KEY_CHANNELS, (1, 1), padding="same", activation="relu"), name="td_memory_keys_1")(sequence_imgs)
-    memory_keys = layers.TimeDistributed(layers.Conv2D(KEY_CHANNELS, (3, 3), padding="same", activation="relu"), name="td_memory_keys_2")(memory_keys)
+    memory_keys_conv_1 = tf.keras.Sequential(
+        [
+            layers.Conv2D(KEY_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu"),
+            layers.Conv2D(KEY_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ]
+    )
 
-    memory_values = layers.TimeDistributed(layers.Conv2D(VALUE_CHANNELS, (1, 1), padding="same", activation="relu"), name="td_memory_values_1")(sequence_imgs)
-    memory_values = layers.TimeDistributed(layers.Conv2D(VALUE_CHANNELS, (3, 3), padding="same", activation="relu"), name="td_memory_values_2")(memory_values)
+    memory_keys_conv_3 = tf.keras.Sequential(
+        [
+            layers.Conv2D(KEY_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu"),
+            layers.Conv2D(KEY_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ]
+    )
 
-    query_key = layers.Conv2D(KEY_CHANNELS, (1, 1), padding="same", activation="relu", name="key_conv_1")(image)
-    query_key = layers.Conv2D(KEY_CHANNELS, (3, 3), padding="same", activation="relu", name="key_conv_2")(query_key)
+    memory_values_conv_1 = tf.keras.Sequential(
+        [
+            layers.Conv2D(VALUE_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu"),
+            layers.Conv2D(VALUE_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ]
+    )
 
-    query_value = layers.Conv2D(VALUE_CHANNELS, (1, 1), padding="same", activation="relu", name="query_value_conv_1")(image)
-    query_value = layers.Conv2D(VALUE_CHANNELS, (3, 3), padding="same", activation="relu", name="query_value_conv_2")(query_value)
+    memory_values_conv_3 = tf.keras.Sequential(
+        [
+            layers.Conv2D(VALUE_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu"),
+            layers.Conv2D(VALUE_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ]
+    )
 
-    # print("memory_keys", memory_keys.shape)
-    # print("memory_values", memory_values.shape)
-    # print("query_key", query_key.shape)
-    # print("query_value", query_value.shape)
+    query_key_conv_1 = tf.keras.Sequential(
+        [
+            layers.Conv2D(KEY_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ],
+        name="query_key_conv_1"
+    )
+
+    query_key_conv_3 = tf.keras.Sequential(
+        [
+            layers.Conv2D(KEY_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ],
+        name="query_key_conv_3"
+    )
+
+    query_value_conv_1 = tf.keras.Sequential(
+        [
+            layers.Conv2D(VALUE_CHANNELS, (1, 1), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ],
+        name="query_value_conv_1"
+    )
+
+    query_value_conv_3 = tf.keras.Sequential(
+        [
+            layers.Conv2D(VALUE_CHANNELS, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ],
+        name="query_value_conv_3"
+    )
+
+    bottleneck = tf.keras.Sequential(
+        [
+            layers.Conv2D(512, (3, 3), padding=padding),
+            layers.BatchNormalization(momentum=0.1),
+            layers.Activation("relu")
+        ],
+        name="bottleneck"
+    )
+
+    classification_segmentation = tf.keras.Sequential(
+        [
+            layers.Conv2D(n_output, (1, 1), padding=padding),
+            layers.Dropout(0.1)
+        ],
+        name="classification_segmentation"
+    )
+
+    # Assemblage des éléments
+
+    memory_keys = layers.TimeDistributed(memory_keys_conv_1, name="td_memory_keys_1")(sequence_imgs)
+    memory_keys = layers.TimeDistributed(memory_keys_conv_3, name="td_memory_keys_3")(memory_keys)
+
+    memory_values = layers.TimeDistributed(memory_values_conv_1, name="td_memory_values_1")(sequence_imgs)
+    memory_values = layers.TimeDistributed(memory_values_conv_3, name="td_memory_values_3")(memory_values)
+
+    query_key = query_key_conv_1(image)
+    query_key = query_key_conv_3(query_key)
+
+    query_value = query_value_conv_1(image)
+    query_value = query_value_conv_3(query_value)
 
     output = memory_module(memory_keys, memory_values, query_key, query_value)
 
-    output = layers.Conv2D(n_output, (3, 3), padding=padding, activation="relu", name="bottleneck")(output)  # bottleneck
-    output = layers.Conv2D(n_output, (1, 1), padding=padding, name="cls_seg")(output)  # cls_seg
+    output = bottleneck(output)  # bottleneck
+    output = classification_segmentation(output)  # cls_seg
+
+    if upsampling is not False:
+        output = layers.UpSampling2D(size=(upsampling, upsampling), interpolation="bilinear")(output)
 
     return output
 
 
 def TMAnet(image_size, sequence_length, categories):
 
+    from .aunet import Attention_ResUNet
+
+    encoder = Attention_ResUNet(categories, (3,) + image_size, onlyEncoder=True)
+
+    return build_network(image_size, sequence_length, categories, 8, encoder)
+
+def TMAnet_ResNetEncoder(image_size, sequence_length, categories):
+
+    encoder = tf.keras.applications.ResNet50(include_top=False, weights="imagenet", input_shape=(3,) + image_size)
+
+    # for layer in encoder.layers:
+    #     layer.trainable = False
+
+    return build_network(image_size, sequence_length, categories, 32, encoder)
+
+
+def build_network(image_size, sequence_length, categories, upsampling, encoder):
+
+    image_size = (3,) + image_size
+
     image = layers.Input(image_size)
     sequence_imgs = layers.Input((sequence_length,) + image_size)
 
-    ResNet50 = tf.keras.applications.ResNet50(include_top=False, weights="imagenet", input_tensor=image)
+    image_encoded = encoder(image)
+    sequence_imgs_encoded = layers.TimeDistributed(encoder, name="tb_sequence_resnet")(sequence_imgs)
 
-    for layer in ResNet50.layers:
-        layer.trainable = False
+    tma_head = TMA_HEAD(image_encoded, sequence_imgs_encoded, categories, upsampling=upsampling)
 
-    image = ResNet50(image)
-    sequence_imgs = layers.TimeDistributed(ResNet50, name="tb_sequence_resnet")(sequence_imgs)
+    return Model([image, sequence_imgs], tma_head, name="TMA-" + encoder.name)
 
-    tma_head = TMA_HEAD(image, sequence_imgs, categories)
-
-    return Model([image, sequence_imgs], tma_head, name="TMA-RESNET")
 
 if __name__ == "__main__":
 
-    img_size = (3, 384, 384)
+    img_size = (384, 384)
 
-    model = TMAnet(img_size, 3, 19)
-   
+    model = TMAnet_ResNetEncoder(img_size, 3, 19)
+
     model.summary(line_length=250)
