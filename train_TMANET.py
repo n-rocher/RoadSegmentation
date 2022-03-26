@@ -5,7 +5,7 @@ from wandb.keras import WandbCallback
 
 from utils.dataset_sequence import CityscapeSequenceDataset
 
-from models.tma_head import TMAnet
+from models.tmanet import TMAnet, TMA_ResUnet
 
 from datetime import datetime
 from utils.argmaxMeanIOU import ArgmaxMeanIOU
@@ -16,7 +16,7 @@ import tensorflow.keras.optimizers as optimizers
 USE_WANDB = False
 
 IMG_SIZE = (384, 384)
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 EPOCHS = 500
 SEQUENCE_LENGTH = 2
 SEQUENCE_DELAY = 2
@@ -35,9 +35,9 @@ if __name__ == '__main__':
 
     # Creating model
     print("\n> Creating model")
-    model = TMAnet(IMG_SIZE, SEQUENCE_LENGTH, train_gen.classes())
+    model = TMA_ResUnet(IMG_SIZE, SEQUENCE_LENGTH, train_gen.classes())
 
-    model.load_weights(r"J:\PROJET\ROAD_SEGMENTATION\trained_sequence_models\20220309-125817\TMA-AttentionResUNet-pool_8-F16_CityscapeSequenceDataset-Length-2-Delay-2_384-384_epoch-70_loss-0.61_miou_0.28.h5", by_name=False)
+    # model.load_weights(r"J:\PROJET\ROAD_SEGMENTATION\trained_sequence_models\20220309-125817\TMA-AttentionResUNet-pool_8-F16_CityscapeSequenceDataset-Length-2-Delay-2_384-384_epoch-70_loss-0.61_miou_0.28.h5", by_name=False)
     # model = keras.models.load_model(MODEL_FILE, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
 
     # Compiling the model

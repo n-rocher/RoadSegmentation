@@ -1,3 +1,4 @@
+
 import os
 import cv2
 import random
@@ -213,7 +214,7 @@ class A2D2Dataset(keras.utils.Sequence):
         # Chargement de la photo de la route
         x = np.zeros((self.batch_size,) + self.img_size + (3,), dtype="float32")
         for j, path in enumerate(batch_input_img_paths):
-            x[j] = np.array(load_img(path, target_size=self.img_size)) / 255.
+            x[j] = np.array(load_img(path, target_size=self.img_size)) #FIXME: / 255.
 
         # Chargement du masque et traitement
         ins_255 = np.ones(self.img_size) * 255
@@ -221,7 +222,7 @@ class A2D2Dataset(keras.utils.Sequence):
         for j, path in enumerate(batch_target_img_paths):
             mask = np.array(load_img(path, target_size=self.img_size, color_mode="rgb"))
 
-            cv2.imshow("mask", mask)
+            # cv2.imshow("mask", mask)
 
             # Create blank image
             instance = np.zeros(self.img_size)
@@ -244,7 +245,7 @@ class A2D2Dataset(keras.utils.Sequence):
                     # And we past it to the good id to the instance
                     instance = instance + res
 
-            cv2.imshow("instance", instance * 255)
+            # cv2.imshow("instance", instance * 255)
             y[j, 0] = instance == 0
 
         y = np.moveaxis(y, 1, -1)
@@ -474,9 +475,10 @@ class NPZMultiFileDataset(keras.utils.Sequence):
 if __name__ == "__main__":
 
     img_size = (384, 384)
-    DATASET_FILE = "DATASET_TRAIN_MapillaryVistasDataset_384-384_CAT-17.npz"
+    # DATASET_FILE = "DATASET_TRAIN_MapillaryVistasDataset_384-384_CAT-17.npz"
 
-    train_gen = NPZDataset(DATASET_FILE, 10)
+
+    train_gen = A2D2Dataset(1000, img_size, r"F:\\A2D2 Camera Semantic\\training\\")
 
     import matplotlib.pyplot as plt
     import tensorflow as tf
@@ -484,7 +486,13 @@ if __name__ == "__main__":
     for id in range(len(train_gen)):
         data = train_gen.__getitem__(id)
 
+        images = data[0]
+
+        print("mean for 3 valeus", np.mean(images, axis=(0, 1, 2)), np.std(images, axis=(0, 1, 2)))
+
         for img_i, mask_i in zip(data[0], data[1]):
+
+            continue
 
             nbr_images = 1 if img_i.shape[0] == img_size[0] else img_i.shape[0]
 

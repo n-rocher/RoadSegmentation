@@ -10,7 +10,7 @@ import torch
 from utils.dataset_sequence import CITYSCAPE_CATEGORIES
 from utils.argmaxMeanIOU import ArgmaxMeanIOU
 
-from models.tma_head import TMAnet_ResNetEncoder
+from models.tmanet import TMA_ResUnet
 
 VIDEO_PATH = r"F:\ROAD_VIDEO\Clip"
 MODEL_FILE = r"J:\PROJET\ROAD_SEGMENTATION\trained_sequence_models\20220309-125817\TMA-AttentionResUNet-pool_8-F16_CityscapeSequenceDataset-Length-2-Delay-2_384-384_epoch-26_loss-0.74_miou_0.22.h5"
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     SEQUENCE_DELAY = 2
     OUTPUT_SIZE = (640, 480)
 
-    model = keras.models.load_model(MODEL_FILE, compile=False)
+    model = TMA_ResUnet((384, 384), SEQUENCE_LENGTH, len(values)) # keras.models.load_model(MODEL_FILE, compile=False)
 
     INPUT_SIZE = model.input[0].shape[-2:]
 
