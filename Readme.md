@@ -15,6 +15,8 @@ I used those models to segment the video :
 
 2. Attention R2U-Net - [pretrained model](https://github.com/n-rocher/RoadSegmentation/blob/main/models/AttentionResUNet-F16_MultiDataset_512-512_epoch-26_loss-0.21_miou_0.55.h5)<br/>
     Result : Mean Intersection Over Union = 55% Loss = 0.21
+3. BiSeNet V2 - [paper](https://arxiv.org/abs/2101.06085)
+4. TMANet - [paper](https://arxiv.org/abs/2102.08643)
 
 I trained each of these models for about 48 hours with an I7-7700K, a 6GB GTX 1060 and 28GB of RAM.
 

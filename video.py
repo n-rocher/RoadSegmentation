@@ -175,7 +175,7 @@ class Thread(QThread):
         self.segmentation_model_size = None
 
         try:
-            self.segmentation_model = keras.models.load_model(filename, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
+            self.segmentation_model = keras.models.load_model(filename, compile=False, custom_objects={'ArgmaxMeanIOU': ArgmaxMeanIOU})
             self.segmentation_model_size = self.segmentation_model.get_layer(index=0).input_shape[0][1:-1][::-1]
         except:
             print("[loadSegmentationModel] Une erreur est survenue lors de l'ouverture du h5")
